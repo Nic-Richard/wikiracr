@@ -1,0 +1,22 @@
+.hud {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--bg); border-bottom: 1px solid var(--bdr);
+  padding: 10px 20px; gap: 16px; flex-shrink: 0;
+  font-size: 13px;
+}
+
+.left    { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; overflow: hidden; }
+.sep     { color: var(--faint); flex-shrink: 0; }
+.start   { color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.current { color: var(--text);  font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.goal    { color: var(--gold);  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.center  { display: flex; flex-direction: column; align-items: center; gap: 2px; flex-shrink: 0; }
+.timer   { font-family: var(--display); font-size: 20px; font-weight: 700; color: var(--text); line-height: 1; }
+.clicks  { font-size: 11px; color: var(--faint); }
+
+.right   { display: flex; gap: 8px; flex-shrink: 0; }
+.player  { display: flex; flex-direction: column; align-items: center; padding: 4px 10px; border: 1px solid var(--bdr); border-radius: 2px; min-width: 60px; }
+.done    { border-color: var(--green); }
+.playerName   { font-size: 11px; color: var(--muted); }
+.playerClicks { font-size: 14px; font-weight: 600; color: var(--text); }

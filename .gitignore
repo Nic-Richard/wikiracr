@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# Builds and coverage
+client/dist/
+dist/
+coverage/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+!.env.*.example
+!**/.env.example
+!**/.env.*.example
+
+# Runtime data
+app.db
+app.db-*
+*.db-wal
+*.db-shm
+logs/
+*.log
+
+# Generator inputs and caches
+tools/pair-generator/enwiki-*.sql.gz
+tools/pair-generator/pageviews-*.bz2
+tools/pair-generator/*.pkl
+tools/pair-generator/pairs.db
+tools/pair-generator/higherlower_articles.json
+
+# Local tooling
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+__pycache__/
+*.py[cod]

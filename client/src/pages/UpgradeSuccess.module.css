@@ -1,0 +1,7 @@
+.root    { height: 100vh; display: flex; align-items: center; justify-content: center; position: relative; }
+.content { position: relative; z-index: 10; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.icon    { font-size: 56px; color: var(--green); }
+.title   { font-family: var(--display); font-size: 52px; font-weight: 700; color: var(--text); }
+.sub     { font-size: 16px; color: var(--muted); max-width: 320px; line-height: 1.6; }
+.btn     { font-family: var(--display); font-weight: 700; font-size: 18px; letter-spacing: 0.1em; background: var(--accent); color: #0d1117; padding: 14px 48px; border-radius: 2px; text-decoration: none; transition: background 0.15s; }
+.btn:hover { background: #79b8ff; }

@@ -1,0 +1,37 @@
+.wrap { position: relative; }
+
+.pill {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--sur); border: 1px solid var(--bdr2); border-radius: 14px;
+  padding: 5px 12px; cursor: pointer; font-family: var(--body);
+  transition: border-color 0.15s;
+}
+.pill:hover { border-color: var(--muted); }
+
+.pillLabel { font-size: 11px; color: var(--faint); text-transform: uppercase; letter-spacing: 0.04em; }
+.pillRank  { font-size: 14px; font-weight: 700; color: var(--text); }
+.pillTotal { font-size: 12px; font-weight: 500; color: var(--faint); }
+
+.dropdown {
+  position: absolute; top: calc(100% + 8px); right: 0; z-index: 60;
+  width: 260px; max-height: 320px; overflow-y: auto;
+  background: var(--sur); border: 1px solid var(--bdr2); border-radius: 6px;
+  padding: 6px;
+}
+
+.row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 8px; border-radius: 4px; font-size: 13px;
+}
+.row:hover { background: var(--sur2); }
+.rowMe  { background: var(--sur2); }
+.rowOut { opacity: 0.45; }
+
+.rank  { color: var(--faint); font-size: 12px; width: 18px; flex-shrink: 0; }
+.name  { color: var(--muted); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rowMe .name { color: var(--text); font-weight: 600; }
+
+.away  { color: #e3b341; font-weight: 700; font-size: 10px; letter-spacing: 0.05em; background: var(--sur2); border-radius: 8px; padding: 1px 6px; flex-shrink: 0; }
+.check { color: var(--green); font-size: 13px; flex-shrink: 0; }
+.value { color: var(--gold); font-weight: 700; font-size: 12px; flex-shrink: 0; white-space: nowrap; }
+.rowOut .value { color: var(--red); }

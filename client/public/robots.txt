@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://wikiracr.com/sitemap.xml

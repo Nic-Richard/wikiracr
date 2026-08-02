@@ -1,0 +1,60 @@
+.root { min-height: 100vh; position: relative; background: var(--bg); overflow-x: hidden; }
+.wrap {
+  position: relative; z-index: 10;
+  display: flex; flex-direction: column; align-items: center;
+  max-width: 640px; margin: 0 auto;
+  padding: 24px 24px 60px;
+  text-align: center;
+}
+
+.headerRow { display: flex; align-items: center; width: 100%; margin-bottom: 26px; }
+.back      { font-size: 13px; color: var(--muted); text-decoration: none; transition: color 0.15s; }
+.back:hover { color: var(--text); }
+
+.title       { font-family: var(--display); font-size: 48px; font-weight: 700; margin-bottom: 8px; }
+.sub         { font-size: 16px; color: var(--muted); margin-bottom: 40px; }
+
+.compareTable {
+  width: 100%; max-width: 540px; margin-bottom: 36px; border: 1px solid var(--bdr); border-radius: 2px; overflow: hidden;
+  background: linear-gradient(180deg, rgba(28, 33, 40, 0.94), rgba(22, 27, 34, 0.94));
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.22);
+}
+.compareRow {
+  display: grid;
+  grid-template-columns: 1fr 64px 64px 64px;
+  align-items: center;
+  padding: 10px 14px;
+  border-top: 1px solid var(--bdr);
+  font-size: 13px;
+}
+.compareRow:first-child { border-top: none; }
+.compareLabel { text-align: left; color: var(--muted); }
+.compareHead {
+  background: var(--sur);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+.compareProHead { color: var(--gold); }
+.compareRow span:not(.compareLabel) { text-align: center; font-weight: 600; }
+.yes { color: var(--green); }
+.no  { color: var(--faint); }
+
+.betaCard {
+  width: 100%; max-width: 540px; margin: -12px 0 24px;
+  display: flex; flex-direction: column; gap: 5px;
+  padding: 13px 16px; border: 1px solid rgba(210,153,34,0.28);
+  background: rgba(210,153,34,0.06); text-align: left;
+  font-size: 12px; color: var(--muted); line-height: 1.55;
+}
+.betaCard b { color: var(--gold); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; }
+
+.upgradeBtn  { font-family: var(--display); font-weight: 700; font-size: 20px; letter-spacing: 0.1em; background: var(--gold); color: #0d1117; border: none; padding: 16px 56px; border-radius: 2px; cursor: pointer; transition: background 0.15s; margin-bottom: 10px; }
+.upgradeBtn:hover { background: #e6b830; }
+.signInNote  { font-size: 12px; color: var(--faint); margin-bottom: 8px; }
+.note        { font-size: 12px; color: var(--faint); }
+
+.upgradeBtn:disabled { opacity: 0.6; cursor: default; }
+.errorNote  { font-size: 12px; color: var(--red); margin-top: 6px; }

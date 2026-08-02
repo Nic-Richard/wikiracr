@@ -1,0 +1,71 @@
+.root { min-height: 100vh; position: relative; background: var(--bg); }
+.spinner { width: 36px; height: 36px; border: 2px solid var(--bdr2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; position: absolute; top: 50%; left: 50%; margin: -18px 0 0 -18px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.wrap { position: relative; z-index: 10; max-width: 720px; margin: 0 auto; padding: 32px 24px 60px; }
+.header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
+.back { font-size: 13px; color: var(--faint); text-decoration: none; }
+.back:hover { color: var(--muted); }
+
+.gateWrap { position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; max-width: 400px; margin: 120px auto; padding: 24px; }
+.tag { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; color: var(--gold); text-transform: uppercase; }
+.gateTitle { font-family: var(--display); font-size: 32px; font-weight: 700; color: var(--text); }
+.gateDesc { font-size: 14px; color: var(--muted); line-height: 1.6; }
+.gateBtn { margin-top: 8px; background: var(--accent); border: none; color: #0d1117; font-weight: 700; font-size: 14px; padding: 12px 28px; border-radius: 2px; cursor: pointer; }
+.gateBack { font-size: 13px; color: var(--faint); margin-top: 4px; text-decoration: none; }
+
+.identity { display: flex; align-items: center; gap: 14px; margin-bottom: 28px; }
+.avatar { width: 56px; height: 56px; border-radius: 50%; border: 2px solid var(--bdr2); }
+.username { font-family: var(--display); font-size: 26px; font-weight: 700; color: var(--text); }
+.proBadge { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; color: var(--gold); border: 1px solid var(--gold); border-radius: 3px; padding: 2px 6px; margin-left: 8px; vertical-align: middle; }
+
+.cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 32px; }
+@media (max-width: 640px) { .cards { grid-template-columns: 1fr; } }
+.card { background: var(--sur); border: 1px solid var(--bdr2); border-radius: 4px; padding: 18px; text-align: center; }
+.cardLabel { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; color: var(--faint); margin-bottom: 8px; }
+.cardBig { font-family: var(--display); font-size: 28px; font-weight: 700; color: var(--text); margin: 4px 0; }
+.cardSub { font-size: 12px; color: var(--muted); }
+
+.rankBadge   { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: 0.05em; padding: 3px 8px; border-radius: 10px; text-transform: uppercase; margin-bottom: 4px; }
+.rankBronze    { background: rgba(176, 110, 60, 0.15); color: #cd8c5c; }
+.rankSilver    { background: rgba(180, 190, 200, 0.15); color: #c6d0da; }
+.rankGold      { background: rgba(240, 190, 60, 0.15); color: #e3b341; }
+.rankDiamond   { background: rgba(88, 166, 255, 0.15); color: #79b8ff; }
+.rankOracle { background: rgba(200, 100, 255, 0.15); color: #d599ff; }
+
+.section { margin-bottom: 28px; }
+.sectionLabel { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; color: var(--faint); margin-bottom: 12px; }
+.empty { font-size: 13px; color: var(--faint); padding: 16px 0; }
+
+.speedrunGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
+.speedrunCard { background: var(--sur); border: 1px solid var(--bdr2); border-radius: 4px; padding: 12px; text-align: center; }
+.speedrunDiff { display: block; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.speedrunTime { display: block; font-family: var(--display); font-size: 18px; font-weight: 700; color: var(--accent); margin: 4px 0; }
+.speedrunClicks { display: block; font-size: 11px; color: var(--faint); }
+
+.historyList { display: flex; flex-direction: column; gap: 6px; }
+.historyRow { display: flex; align-items: center; gap: 12px; background: var(--sur); border: 1px solid var(--bdr); padding: 10px 14px; border-radius: 2px; font-size: 13px; }
+.historyMode { font-size: 10px; font-weight: 700; letter-spacing: 0.04em; color: var(--faint); text-transform: uppercase; width: 56px; flex-shrink: 0; }
+.historyPair { flex: 1; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.historyClicks { color: var(--muted); font-size: 12px; flex-shrink: 0; }
+.historyScore { font-weight: 700; color: var(--accent); flex-shrink: 0; }
+.historyDnf { color: var(--red); }
+
+@media (max-width: 640px) {
+  .wrap { padding: 24px 14px 44px; }
+  .header { margin-bottom: 22px; }
+  .gateWrap { margin: 80px auto; padding: 20px 16px; }
+  .gateTitle { font-size: 28px; }
+  .identity { align-items: flex-start; gap: 12px; margin-bottom: 22px; }
+  .avatar { width: 48px; height: 48px; }
+  .username { font-size: 22px; overflow-wrap: anywhere; }
+  .proBadge { display: inline-block; margin-left: 0; margin-top: 6px; }
+  .cards { gap: 8px; margin-bottom: 24px; }
+  .card { padding: 14px; }
+  .cardBig { font-size: 24px; }
+  .speedrunGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .historyRow { gap: 8px; padding: 10px; }
+  .historyMode { width: 48px; font-size: 9px; }
+  .historyClicks { display: none; }
+  .historyScore { font-size: 12px; }
+}

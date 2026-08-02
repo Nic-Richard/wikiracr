@@ -1,0 +1,29 @@
+.wrap { position: relative; }
+
+.burger {
+  width: 38px; height: 38px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
+  background: none; border: 1px solid var(--bdr2); border-radius: 4px; cursor: pointer;
+  transition: border-color 0.15s;
+}
+.burger:hover { border-color: var(--muted); }
+.burger span { width: 16px; height: 2px; background: var(--text); border-radius: 1px; }
+
+.menu {
+  position: absolute; top: calc(100% + 8px); right: 0; z-index: 500;
+  min-width: 200px; background: rgba(13, 17, 23, 0.98); border: 1px solid var(--bdr2);
+  border-radius: 4px; padding: 6px; backdrop-filter: blur(8px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  display: flex; flex-direction: column;
+}
+
+.item {
+  display: block; width: 100%; text-align: left;
+  background: none; border: none; color: var(--muted); font-size: 13px; font-weight: 500;
+  padding: 10px 12px; border-radius: 3px; cursor: pointer; text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+}
+.item:hover { background: rgba(255,255,255,0.05); color: var(--text); }
+.item:disabled { opacity: 0.5; cursor: default; }
+
+.rule { height: 1px; background: var(--bdr); margin: 6px 4px; }

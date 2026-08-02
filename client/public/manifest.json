@@ -1,0 +1,14 @@
+{
+  "name": "WikiRacr",
+  "short_name": "WikiRacr",
+  "description": "Competitive Wikipedia racing game. Navigate from a start article to a goal article through Wikipedia links.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0d1117",
+  "theme_color": "#0d1117",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

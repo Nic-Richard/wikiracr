@@ -1,0 +1,48 @@
+.root   { min-height: 100vh; padding: 80px 24px 40px; max-width: 640px; margin: 0 auto; }
+.header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; }
+.title  { font-family: var(--display); font-size: 28px; font-weight: 700; }
+.back   { font-size: 13px; color: var(--faint); text-decoration: none; }
+.back:hover { color: var(--muted); }
+
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--bdr); margin-bottom: 16px; }
+.tab  { background: none; border: none; color: var(--faint); font-size: 12px; font-weight: 700; letter-spacing: 0.05em; padding: 10px 16px; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.tab:hover { color: var(--muted); }
+.tabSel { color: var(--accent); border-bottom-color: var(--accent); }
+
+.diffTabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+.diffTab  { background: var(--sur); border: 1px solid var(--bdr2); color: var(--muted); font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 12px; cursor: pointer; }
+.diffTab:hover { border-color: var(--muted); }
+.diffTabSel { background: var(--accent); border-color: var(--accent); color: #0d1117; }
+
+.rankBadge   { font-size: 10px; font-weight: 700; letter-spacing: 0.05em; padding: 3px 8px; border-radius: 10px; text-transform: uppercase; flex-shrink: 0; }
+.rankBronze    { background: rgba(176, 110, 60, 0.15); color: #cd8c5c; }
+.rankSilver    { background: rgba(180, 190, 200, 0.15); color: #c6d0da; }
+.rankGold      { background: rgba(240, 190, 60, 0.15); color: #e3b341; }
+.rankDiamond   { background: rgba(88, 166, 255, 0.15); color: #79b8ff; }
+.rankOracle { background: rgba(200, 100, 255, 0.15); color: #d599ff; }
+
+.list   { display: flex; flex-direction: column; gap: 8px; }
+.empty  { color: var(--muted); font-size: 14px; text-align: center; padding: 40px; }
+.row    { display: flex; align-items: center; gap: 12px; background: var(--sur); border: 1px solid var(--bdr); padding: 14px 18px; border-radius: 2px; }
+.rank   { color: var(--faint); width: 28px; font-size: 13px; flex-shrink: 0; }
+.name   { flex: 1; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.clicks { font-size: 13px; color: var(--muted); flex-shrink: 0; }
+.score  { font-family: var(--display); font-size: 18px; color: var(--accent); font-weight: 700; flex-shrink: 0; }
+
+@media (max-width: 640px) {
+  .root { padding: 56px 12px 32px; }
+  .header { margin-bottom: 22px; gap: 12px; }
+  .title { font-size: 24px; }
+  .tabs { overflow-x: auto; scrollbar-width: none; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab { flex: 1 0 auto; padding: 10px 12px; }
+  .diffTabs { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 3px; scrollbar-width: none; }
+  .diffTabs::-webkit-scrollbar { display: none; }
+  .diffTab { flex-shrink: 0; }
+  .row { gap: 8px; padding: 12px 10px; }
+  .rank { width: 22px; }
+  .name { font-size: 13px; }
+  .clicks { display: none; }
+  .score { font-size: 16px; }
+  .rankBadge { font-size: 9px; padding: 3px 6px; }
+}

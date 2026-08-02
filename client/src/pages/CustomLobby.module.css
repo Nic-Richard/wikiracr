@@ -1,0 +1,77 @@
+.root { min-height: 100vh; position: relative; background: var(--bg); overflow-x: hidden; }
+.wrap { position: relative; z-index: 10; max-width: 760px; margin: 0 auto; padding: 40px 24px 80px; }
+
+.headerRow { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+.tag { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; color: var(--gold); }
+.backLink { font-size: 13px; color: var(--faint); text-decoration: none; }
+.backLink:hover { color: var(--muted); }
+
+.title    { font-family: var(--display); font-size: 34px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+.subtitle { font-size: 14px; color: var(--muted); margin-bottom: 32px; }
+
+.section     { margin-bottom: 28px; }
+.sectionLabel { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; color: var(--faint); margin-bottom: 12px; }
+.sectionHint { font-size: 12px; color: var(--faint); margin: -8px 0 12px; }
+.hint        { font-size: 12px; color: var(--faint); margin-top: 8px; }
+
+.twoCol { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+@media (max-width: 560px) { .twoCol { grid-template-columns: 1fr; } }
+
+/* Mode cards */
+.modeGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+.modeCard {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 6px;
+  background: var(--sur); border: 1px solid var(--bdr2); border-radius: 6px;
+  padding: 14px 16px; cursor: pointer; text-align: left; transition: border-color 0.15s, background 0.15s;
+}
+.modeCard:hover { border-color: var(--muted); }
+.modeCardSel { border-color: var(--accent); background: rgba(88, 166, 255, 0.07); }
+.modeTag  { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; color: var(--gold); }
+.modeName { font-size: 16px; font-weight: 700; color: var(--text); }
+.modeDesc { font-size: 12px; color: var(--faint); line-height: 1.5; }
+
+/* Pill selectors */
+.pillRow { display: flex; flex-wrap: wrap; gap: 8px; }
+.pillRowCenter { justify-content: center; }
+.pill {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  background: var(--sur); border: 1px solid var(--bdr2); border-radius: 4px;
+  color: var(--muted); font-size: 13px; font-weight: 600; padding: 9px 16px; cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.pill:hover { border-color: var(--muted); color: var(--text); }
+.pillSel { border-color: var(--accent); color: var(--accent); background: rgba(88, 166, 255, 0.07); }
+.pillSub { font-size: 10px; color: var(--faint); font-weight: 500; }
+
+/* Stepper */
+.stepper { display: flex; align-items: center; gap: 16px; }
+.stepBtn {
+  width: 38px; height: 38px; border-radius: 4px; border: 1px solid var(--bdr2); background: var(--sur);
+  color: var(--text); font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+.stepBtn:hover { border-color: var(--muted); }
+.stepVal { font-family: var(--display); font-size: 22px; font-weight: 700; color: var(--text); min-width: 30px; text-align: center; }
+
+.error { font-size: 13px; color: var(--red); margin-bottom: 14px; }
+
+.createBtn {
+  width: 100%; background: var(--accent); border: none; color: #0d1117;
+  font-weight: 700; font-size: 15px; letter-spacing: 0.05em; padding: 16px; border-radius: 4px;
+  cursor: pointer; margin-top: 8px;
+}
+.createBtn:disabled { opacity: 0.6; cursor: default; }
+
+@media (max-width: 640px) {
+  .wrap { padding: 28px 16px 56px; }
+  .headerRow { align-items: flex-start; gap: 12px; }
+  .title { font-size: clamp(28px, 10vw, 34px); }
+  .subtitle { line-height: 1.5; margin-bottom: 24px; }
+  .section { margin-bottom: 24px; }
+  .modeGrid { grid-template-columns: 1fr; }
+  .modeCard { padding: 13px 14px; }
+  .pillRow { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pillRowCenter { justify-content: stretch; }
+  .pill { padding: 9px 10px; }
+  .stepper { justify-content: space-between; }
+  .createBtn { padding: 15px 12px; }
+}
