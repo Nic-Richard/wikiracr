@@ -13,7 +13,8 @@ import time
 GRAPH_CACHE      = "wiki_graph.pkl"
 PAGEVIEWS_CACHE  = "pageviews_cache.pkl"
 PAIRS_DB         = "pairs.db"
-PAGEVIEW_DUMP    = None        # auto-detected; or set to filename explicitly
+# Set a filename to override automatic pageview dump detection.
+PAGEVIEW_DUMP    = None
 MIN_OUTBOUND     = 5
 
 # Generation cost scales with candidate-pool size. Adjust rounds after measuring
@@ -26,7 +27,7 @@ TIERS = [
 ]
 
 
-# Pageviews
+# Pageview loading
 
 def find_pageview_dump():
     candidates = glob.glob("pageviews-*-user.bz2") + glob.glob("pageviews-*.bz2")
@@ -37,9 +38,9 @@ def find_pageview_dump():
 
 
 def load_pageviews_raw(path, title_set):
-    # format (space-separated):
+    # Expected space-separated dump format:
     #   wiki_db  article_title  null  access_type  view_count  hourly_breakdown
-    # one row per (article, access_type) -- sum desktop + mobile rows
+    # Each access type has its own row, so counts must be combined.
     print(f"Reading {path} ...")
     views = {}
     matched     = 0
@@ -95,7 +96,7 @@ def load_pageviews(path, title_set):
     return views
 
 
-# Bidirectional BFS
+# Path search
 
 def bidirectional_bfs(start_id, goal_id, forward, reverse, max_depth):
     if start_id == goal_id:
@@ -134,7 +135,7 @@ def bidirectional_bfs(start_id, goal_id, forward, reverse, max_depth):
     return None
 
 
-# Database
+# SQLite storage
 
 def init_db(path):
     conn = sqlite3.connect(path)
@@ -193,7 +194,7 @@ def report_tier_counts(conn):
         print(f"  (untagged legacy pairs, not served by any specific difficulty: {untagged:,})")
 
 
-# Generation
+# Pair generation
 
 def fmt_duration(seconds):
     if seconds < 60:
@@ -314,8 +315,6 @@ def generate_pairs(forward, reverse, pages, pageviews, db_path):
     report_tier_counts(conn)
     conn.close()
 
-
-# Entry point
 
 def main():
     if not os.path.exists(GRAPH_CACHE):

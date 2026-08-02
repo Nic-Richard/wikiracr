@@ -8,7 +8,8 @@ PAGE_DUMP       = "enwiki-latest-page.sql.gz"
 LINKTARGET_DUMP = "enwiki-latest-linktarget.sql.gz"
 PAGELINKS_DUMP  = "enwiki-latest-pagelinks.sql.gz"
 
-SAMPLE_ROWS = 2_000_000  # linktarget/pagelinks are huge, a sample is enough to catch a mismatch
+# A sample is sufficient to expose mismatched dump snapshots.
+SAMPLE_ROWS = 2_000_000
 
 
 def load_page_ids_and_titles(path):

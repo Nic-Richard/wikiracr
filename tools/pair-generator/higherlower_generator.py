@@ -10,7 +10,8 @@ GRAPH_CACHE     = "wiki_graph.pkl"
 PAGEVIEWS_CACHE = "pageviews_cache.pkl"
 OUTPUT_FILE     = "higherlower_articles.json"
 TARGET_COUNT    = 5000
-POOL_MULTIPLIER = 4    # views-based buffer before re-ranking by incoming links
+# Keep a larger pageview pool before re-ranking by incoming links.
+POOL_MULTIPLIER = 4
 
 # Reserve part of the catalog for current popularity so recent topics are not
 # displaced solely because they have accumulated fewer incoming links.
@@ -57,7 +58,7 @@ def main():
     with open(GRAPH_CACHE, "rb") as f:
         graph   = pickle.load(f)
         pages   = graph["pages"]
-        reverse = graph["reverse"]  # page_id -> [incoming page_ids], already computed and cached
+        reverse = graph["reverse"]
     print(f"  {len(pages):,} valid mainspace articles")
 
     title_to_id = {title: pid for pid, title in pages.items()}

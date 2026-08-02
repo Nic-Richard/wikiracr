@@ -2,7 +2,6 @@
 .vignette { position: fixed; inset: 0; pointer-events: none; z-index: 1; background: rgba(13,17,23,0.55); }
 .reportCorner { position: fixed; bottom: 20px; left: 24px; z-index: 40; }
 
-/* Floating cards */
 /* Foreground */
 .fg       { position: relative; z-index: 10; height: 100vh; display: flex; flex-direction: column; }
 .topBar   { display: flex; align-items: center; justify-content: space-between; padding: 22px 36px; flex-shrink: 0; }
