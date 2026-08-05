@@ -1,6 +1,8 @@
 # WikiRacr
 
-WikiRacr is a competitive Wikipedia navigation game. Players race from a start article to a goal article by following Wikipedia links, with fewer clicks and faster times producing better results.
+WikiRacr is a competitive Wikipedia game where players race from one article to another by following links only, with fewer clicks and faster times producing better results.
+
+The project grew from my work with graph search on Wikipedia link data. I built forward and reverse graphs and used bidirectional breadth-first search to find short valid paths between articles, then used that system to help curate challenge pairs that are recognizable and enjoyable to play. That technical foundation supports the polished game flow, daily challenges, multiplayer rooms, rankings, and custom modes.
 
 **Live site:** https://wikiracr.com
 
