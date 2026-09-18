@@ -32,6 +32,7 @@ tools/pair-generator/pairs.db
 tools/pair-generator/higherlower_articles.json
 
 # Local tooling
+/tmp/
 .vscode/
 .idea/
 .DS_Store
