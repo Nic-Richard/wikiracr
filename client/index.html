@@ -38,5 +38,15 @@
 <body>
   <div id="root"></div>
   <script type="module" src="/src/main.jsx"></script>
+  <!-- TraceTray loads only on the live domain; a site key binds to the first domain that sends it data. -->
+  <script>
+    if (["wikiracr.com", "www.wikiracr.com"].includes(location.hostname)) {
+      window.TraceTray = { endpoint: "https://tracetray.com/collect", key: "tt_7D5aUB-XxJAyKQR3" };
+      const s = document.createElement("script");
+      s.src = "https://tracetray.com/client/tracker.js";
+      s.defer = true;
+      document.head.appendChild(s);
+    }
+  </script>
 </body>
 </html>
