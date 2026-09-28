@@ -25,9 +25,9 @@ export default function Privacy() {
           <section className={styles.hero}>
             <p className={styles.kicker}>PRIVACY POLICY</p>
             <h1>Privacy Policy</h1>
-            <p className={styles.updated}>Last updated: July 7, 2026</p>
+            <p className={styles.updated}>Last updated: September 28, 2026</p>
             <p className={styles.intro}>
-              This policy explains what WikiRacr collects, how it is used, what may be visible to other players, and where third-party services fit in.
+              This policy explains what WikiRacr collects, how it is used, what may be visible to other players, and where third-party services fit in. WikiRacr is operated by Nic Richard in New Brunswick, Canada.
             </p>
           </section>
 
@@ -88,7 +88,7 @@ export default function Privacy() {
             <section className={styles.section}>
               <h2>6. Third-party providers</h2>
               <p>
-                WikiRacr depends on third-party providers to operate the service. This includes Clerk for authentication, Stripe for payments and billing, Wikipedia and Wikimedia services for article content and link data, and hosting or server infrastructure for running the website and API.
+                WikiRacr depends on third-party providers to operate the service. This includes Clerk for authentication, Stripe for payments and billing, TraceTray for analytics, Wikipedia and Wikimedia services for article content and link data, and hosting or server infrastructure for running the website and API.
               </p>
               <p>
                 These providers may process information according to their own terms and privacy policies. WikiRacr does not control Wikipedia article content, Wikimedia availability, Clerk authentication systems, Stripe billing systems, or hosting provider logs.
@@ -101,7 +101,10 @@ export default function Privacy() {
                 WikiRacr and Clerk may use cookies or similar browser storage needed for authentication, sessions, security, and basic operation. WikiRacr also stores some local preferences on your device, such as motion effects, game audio, chat visibility, and game zoom settings.
               </p>
               <p>
-                This policy does not describe advertising or newsletter tracking because WikiRacr does not currently include those features. If analytics, ads, newsletters, or non-essential tracking are added later, this policy should be updated before launch of those features.
+                WikiRacr uses TraceTray to understand how people use the site. It records things like cursor movement, clicks, scrolling, and which pages are visited, and stores a random visitor ID in your browser so visits can be grouped together. It doesn't record what you type, form entries, passwords, or payment details, and it isn't used for advertising. See <a href="https://tracetray.com/privacy.html">TraceTray's privacy policy</a> for details.
+              </p>
+              <p>
+                WikiRacr does not include advertising or newsletter tracking.
               </p>
             </section>
 
@@ -128,7 +131,7 @@ export default function Privacy() {
             <section className={styles.section}>
               <h2>10. Children and minimum age</h2>
               <p>
-                WikiRacr is not intended for young children. You should only use WikiRacr if you are old enough to understand these terms and privacy practices, or if a parent or guardian has reviewed and allowed your use.
+                You must be at least 13 years old to create a WikiRacr account. Younger players should only use WikiRacr with a parent or guardian's permission.
               </p>
               <p>
                 If you believe a child has provided personal information to WikiRacr in a way that should be reviewed or removed, contact <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>.

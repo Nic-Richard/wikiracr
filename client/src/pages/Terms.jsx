@@ -25,7 +25,7 @@ export default function Terms() {
           <section className={styles.hero}>
             <p className={styles.kicker}>TERMS OF SERVICE</p>
             <h1>Terms of Service</h1>
-            <p className={styles.updated}>Last updated: July 7, 2026</p>
+            <p className={styles.updated}>Last updated: September 28, 2026</p>
           </section>
 
 
@@ -43,7 +43,7 @@ export default function Terms() {
                 WikiRacr is a competitive Wikipedia navigation game. Players start on one Wikipedia article and try to reach a goal article by clicking Wikipedia links only. WikiRacr includes solo play, multiplayer rooms, leaderboards, ranked play, Daily Challenge, Speedrun, Knockout, Clicks mode, Score mode, and Higher or Lower.
               </p>
               <p>
-                WikiRacr is an independent project. It is not owned by, operated by, or endorsed by Wikipedia or the Wikimedia Foundation.
+                WikiRacr is an independent project operated by Nic Richard in New Brunswick, Canada. It is not owned by, operated by, or endorsed by Wikipedia or the Wikimedia Foundation.
               </p>
             </section>
 
@@ -53,7 +53,7 @@ export default function Terms() {
                 Some parts of WikiRacr can be played as a guest. Other features require a signed-in account, including saved history, Daily Challenge progress, ranked play, leaderboards, and Custom Lobby access.
               </p>
               <p>
-                You are responsible for keeping your account secure and for activity that happens through your account. Login and account management are handled through Clerk.
+                You must be at least 13 years old to create an account. You are responsible for keeping your account secure and for activity that happens through your account. Login and account management are handled through Clerk.
               </p>
             </section>
 
@@ -160,7 +160,14 @@ export default function Terms() {
             </section>
 
             <section className={styles.section}>
-              <h2>14. Contact</h2>
+              <h2>14. Governing law</h2>
+              <p>
+                These terms are governed by the laws of New Brunswick and Canada.
+              </p>
+            </section>
+
+            <section className={styles.section}>
+              <h2>15. Contact</h2>
               <p>
                 Questions about these terms can be sent to <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>.
               </p>
