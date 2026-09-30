@@ -5,7 +5,9 @@ const linkCache = new Map();
 const CACHE_MAX = 5000;
 
 function normalise(title) {
-  return decodeURIComponent(title).replace(/_/g, ' ').trim().toLowerCase();
+  let text = String(title ?? '');
+  try { text = decodeURIComponent(text); } catch {}
+  return text.replace(/_/g, ' ').trim().toLowerCase();
 }
 
 function cacheLinks(key, links) {
@@ -80,12 +82,13 @@ async function isValidLink(fromTitle, toTitle) {
     } while (plcontinue);
 
   } catch (err) {
-    log.debug('[wiki] validation API unavailable:', err.message);
-    return true;
+    log.warn('[wiki] validation API unavailable:', err.message);
+    return null;
   }
 
   cacheLinks(key, links);
   return false;
 }
 
-module.exports = { isValidLink };
+// Resolves true or false, or null when Wikipedia could not be reached to check.
+module.exports = { isValidLink, normalise };

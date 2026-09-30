@@ -43,7 +43,7 @@ export function SignInRequiredScreen({ code }) {
       <div className={styles.errBox}>
         <p className={styles.errTitle}>Sign in to join this lobby</p>
         <p className={styles.errMsg}>Custom lobbies need an account so everyone has a username. Free or Pro both work, only creating a custom lobby needs Pro.</p>
-        <SignInButton mode="modal" afterSignInUrl={`/room/${code}`} afterSignUpUrl={`/room/${code}`}>
+        <SignInButton mode="modal" forceRedirectUrl={`/room/${code}`} signUpForceRedirectUrl={`/room/${code}`}>
           <button className={styles.resPrimary}>Sign in or create account</button>
         </SignInButton>
         <Link to="/menu" className={styles.errBack}>Back to menu</Link>

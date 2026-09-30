@@ -48,7 +48,7 @@ export default function Profile() {
           <p className={styles.tag}>ACCOUNT</p>
           <h1 className={styles.gateTitle}>Your Profile</h1>
           <p className={styles.gateDesc}>Sign in to see your rank, stats, and game history.</p>
-          <SignInButton mode="modal" afterSignInUrl="/profile">
+          <SignInButton mode="modal" forceRedirectUrl="/profile">
             <button className={styles.gateBtn}>Sign in</button>
           </SignInButton>
           <Link to="/menu" className={styles.gateBack}>Back to menu</Link>

@@ -7,7 +7,7 @@ const { requireAuth, optionalAuth, requirePro } = require('../middleware/auth');
 const {
   getPair, getDailyChallenge, getUserStats,
   getUserHistory, getDailyLeaderboard, upsertDailyScore,
-  getUserDailyResult, getUserStreak, getUserBestStreak, getHigherLowerArticles,
+  getUserDailyResult, getUserStreak, getUserBestStreak,
   getDailyProgress, saveDailyProgress, clearDailyProgress,
   upsertSpeedrunScore, getSpeedrunLeaderboard, getUserSpeedrunBests,
   getEloLeaderboard, getUserElo,
@@ -16,6 +16,17 @@ const {
   saveReport,
 } = require('../db');
 const { getRoom } = require('../game/GameManager');
+const { accountName } = require('../lib/socketAuth');
+const { verifyPath, checkClicks, cleanClientHistory, MIN_SECONDS_PER_CLICK } = require('../game/pathCheck');
+const speedrunRuns = require('../game/speedrunRuns');
+const higherLower = require('../game/higherLower');
+const { calcScore } = require('../game/scoring');
+
+function sendGameError(res, err, label) {
+  if (err.status) return res.status(err.status).json({ error: err.message });
+  log.error(`[${label}] error:`, err);
+  return res.status(500).json({ error: 'Something went wrong. Please try again.' });
+}
 
 router.get('/pair', (req, res) => {
   try {
@@ -72,9 +83,6 @@ router.get('/room/:code', (req, res) => {
   res.json({ state: room.getPublicState() });
 });
 
-router.get('/higherlower/articles', (req, res) => {
-  res.json({ articles: getHigherLowerArticles() });
-});
 
 router.get('/me/stats', requireAuth, (req, res) => {
   const stats = getUserStats(req.userId);
@@ -97,11 +105,7 @@ router.get('/me/history', requireAuth, (req, res) => {
 });
 
 router.post('/me/game', requireAuth, (req, res) => {
-  const { pairId, path, clicks, timeSeconds, completed, score, mode } = req.body;
-  saveGameHistory({
-    userId: req.userId, pairId, pathTaken: path,
-    clicks, timeSeconds, completed, score, mode,
-  });
+  saveGameHistory(cleanClientHistory(req.userId, req.body));
   res.json({ ok: true });
 });
 
@@ -111,17 +115,31 @@ router.get('/leaderboard/daily', (req, res) => {
   res.json({ leaderboard: board });
 });
 
-router.post('/leaderboard/daily', requireAuth, (req, res) => {
-  const { username, score, clicks, timeSeconds } = req.body;
+router.post('/leaderboard/daily', requireAuth, async (req, res) => {
+  const { clicks, timeSeconds, path } = req.body;
   const today = new Date().toISOString().split('T')[0];
 
   if (getUserDailyResult(req.userId, today)) {
     return res.status(409).json({ error: 'Already submitted a result for today' });
   }
 
-  upsertDailyScore({ userId: req.userId, username, date: today, score, clicks, timeSeconds });
-  clearDailyProgress(req.userId, today);
-  res.json({ ok: true, streak: getUserStreak(req.userId) });
+  try {
+    const pair = getDailyChallenge();
+    if (!pair) return res.status(404).json({ error: 'No daily challenge available' });
+    const hops = await verifyPath(path, pair.start_title, pair.end_title);
+    checkClicks(clicks, hops);
+    // The daily clock only runs while the tab is visible, so the server can only rule out impossible times.
+    if (!Number.isFinite(timeSeconds) || timeSeconds < hops * MIN_SECONDS_PER_CLICK || timeSeconds > 7 * 86400) {
+      return res.status(400).json({ error: 'Invalid time' });
+    }
+    const username = await accountName(req.userId);
+    const score = calcScore(clicks, pair.path_length, timeSeconds);
+    upsertDailyScore({ userId: req.userId, username, date: today, score, clicks, timeSeconds: Math.round(timeSeconds) });
+    clearDailyProgress(req.userId, today);
+    res.json({ ok: true, streak: getUserStreak(req.userId) });
+  } catch (err) {
+    sendGameError(res, err, 'daily');
+  }
 });
 
 const SPEEDRUN_DIFFICULTIES = ['easy', 'medium', 'hard', 'expert', 'random'];
@@ -134,13 +152,36 @@ router.get('/leaderboard/speedrun', (req, res) => {
   res.json({ leaderboard: getSpeedrunLeaderboard(difficulty) });
 });
 
-router.post('/leaderboard/speedrun', requireAuth, (req, res) => {
-  const { username, difficulty, totalSeconds, clicks } = req.body;
+router.post('/speedrun/start', (req, res) => {
+  const { difficulty = 'random' } = req.body || {};
   if (!SPEEDRUN_DIFFICULTIES.includes(difficulty)) {
     return res.status(400).json({ error: 'Invalid difficulty' });
   }
-  upsertSpeedrunScore({ userId: req.userId, username, difficulty, totalSeconds, clicks });
-  res.json({ ok: true });
+  try {
+    res.json(speedrunRuns.startRun(difficulty));
+  } catch (err) {
+    sendGameError(res, err, 'speedrun');
+  }
+});
+
+router.post('/speedrun/:runId/next', (req, res) => {
+  try {
+    res.json(speedrunRuns.nextRound(req.params.runId));
+  } catch (err) {
+    sendGameError(res, err, 'speedrun');
+  }
+});
+
+router.post('/leaderboard/speedrun', requireAuth, async (req, res) => {
+  try {
+    const { runId, rounds } = req.body || {};
+    const result = await speedrunRuns.finishRun(runId, rounds);
+    const username = await accountName(req.userId);
+    upsertSpeedrunScore({ userId: req.userId, username, ...result });
+    res.json({ ok: true, totalSeconds: result.totalSeconds });
+  } catch (err) {
+    sendGameError(res, err, 'speedrun');
+  }
 });
 
 router.get('/leaderboard/elo', (req, res) => {
@@ -155,13 +196,33 @@ router.get('/higherlower/best', requireAuth, (req, res) => {
   res.json({ best: getHigherLowerBest(req.userId) });
 });
 
-router.post('/higherlower/streak', requireAuth, (req, res) => {
-  const { username, streak } = req.body;
-  if (typeof streak !== 'number' || streak < 0) {
-    return res.status(400).json({ error: 'Invalid streak' });
+router.post('/higherlower/start', optionalAuth, async (req, res) => {
+  try {
+    res.json(await higherLower.startGame(req.userId));
+  } catch (err) {
+    sendGameError(res, err, 'higherlower');
   }
-  const best = upsertHigherLowerStreak({ userId: req.userId, username, streak });
-  res.json({ ok: true, best });
+});
+
+router.post('/higherlower/:gameId/guess', async (req, res) => {
+  try {
+    const { userId, ...result } = higherLower.guess(req.params.gameId, req.body?.pick);
+    let best = null;
+    if (userId && result.streak > 0) {
+      best = upsertHigherLowerStreak({ userId, username: await accountName(userId), streak: result.streak });
+    }
+    res.json({ ...result, best });
+  } catch (err) {
+    sendGameError(res, err, 'higherlower');
+  }
+});
+
+router.post('/higherlower/:gameId/next', async (req, res) => {
+  try {
+    res.json(await higherLower.nextPair(req.params.gameId));
+  } catch (err) {
+    sendGameError(res, err, 'higherlower');
+  }
 });
 
 const REPORT_TYPES = ['pair', 'bug', 'other'];
@@ -286,6 +347,7 @@ router.post('/stripe/webhook', async (req, res) => {
     }
   } catch (err) {
     log.error('[webhook] handler error:', err.message);
+    return res.status(500).json({ error: 'Webhook handling failed' });
   }
 
   res.json({ received: true });

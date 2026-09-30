@@ -153,7 +153,7 @@ export default function PlayingScreen({
         <div className={`${styles.sprintBanner} ${styles.linkStatusPill}`}>Checking link&hellip;</div>
       )}
       {linkRejected && (
-        <div className={`${styles.sprintBanner} ${styles.linkStatusPillError}`}>That link isn't on this page, try again</div>
+        <div className={`${styles.sprintBanner} ${styles.linkStatusPillError}`}>{linkRejected}</div>
       )}
 
       <div className={styles.articleArea}>

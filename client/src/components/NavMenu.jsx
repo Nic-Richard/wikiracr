@@ -59,7 +59,7 @@ export default function NavMenu({ isPro }) {
           </SignedIn>
           <SignedOut>
             <div className={styles.rule} />
-            <SignInButton mode="modal" afterSignInUrl="/menu">
+            <SignInButton mode="modal" forceRedirectUrl="/menu">
               <button className={styles.item} onClick={() => setOpen(false)}>Sign In</button>
             </SignInButton>
           </SignedOut>

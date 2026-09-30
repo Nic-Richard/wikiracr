@@ -210,7 +210,7 @@ export default function Menu() {
                 <SignedOut>
                   <div className={styles.nudge}>
                     <span className={styles.nudgeText}>Free account: ranked play, leaderboards, game history, daily challenge</span>
-                    <SignInButton mode="modal" afterSignInUrl="/menu">
+                    <SignInButton mode="modal" forceRedirectUrl="/menu">
                       <button className={styles.nudgeBtn}>Sign in free</button>
                     </SignInButton>
                   </div>
@@ -286,7 +286,7 @@ export default function Menu() {
                 </SignedIn>
                 <SignedOut>
                   <p className={styles.subHint}>You need an account to play Ranked.</p>
-                  <SignInButton mode="modal" afterSignInUrl="/menu">
+                  <SignInButton mode="modal" forceRedirectUrl="/menu">
                     <button className={styles.actionBtn}>SIGN IN FREE &#8594;</button>
                   </SignInButton>
                 </SignedOut>

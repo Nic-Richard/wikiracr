@@ -106,7 +106,7 @@ export default function Account() {
   function handleUpgrade() {
     if (!isSignedIn) {
       pendingUpgrade.current = true;
-      openSignIn({ afterSignInUrl: '/account' });
+      openSignIn({ forceRedirectUrl: '/account' });
       return;
     }
     startCheckout();
@@ -184,7 +184,7 @@ export default function Account() {
             {!isSignedIn && (
               <div className={styles.guestBox}>
                 <p>Guests can play Solo and default Classic rooms. Sign in free to save history, play Daily, use Ranked, and join Custom Lobbies.</p>
-                <SignInButton mode="modal" afterSignInUrl="/account">
+                <SignInButton mode="modal" forceRedirectUrl="/account">
                   <button className={styles.primaryBtn}>Sign in free</button>
                 </SignInButton>
               </div>
@@ -308,7 +308,7 @@ export default function Account() {
             ) : (
               <div className={styles.actions}>
                 <p className={styles.muted}>Sign in to manage security settings for your account.</p>
-                <SignInButton mode="modal" afterSignInUrl="/account">
+                <SignInButton mode="modal" forceRedirectUrl="/account">
                   <button className={styles.secondaryBtn}>Sign in</button>
                 </SignInButton>
               </div>

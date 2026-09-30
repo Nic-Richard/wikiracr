@@ -38,9 +38,21 @@ async function resolveSocketUser(auth = {}) {
   return guestUser(auth.user);
 }
 
+const nameCache = new Map();
+
+// Leaderboard names come from the account, so nobody can post under someone else's name.
+async function accountName(userId) {
+  const cached = nameCache.get(userId);
+  if (cached && Date.now() - cached.at < 10 * 60 * 1000) return cached.name;
+  const name = displayNameFor(await clerk.users.getUser(userId)).slice(0, 40);
+  if (nameCache.size > 10000) nameCache.clear();
+  nameCache.set(userId, { name, at: Date.now() });
+  return name;
+}
+
 async function verifyProUser(token) {
   const user = await userFromToken(token);
   return user?.isPro ? user : null;
 }
 
-module.exports = { resolveSocketUser, verifyProUser };
+module.exports = { resolveSocketUser, verifyProUser, accountName };

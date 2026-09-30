@@ -1,45 +1,13 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useUser, useAuth } from '@clerk/clerk-react';
 import NetworkBackground from '../components/NetworkBackground';
 import { useMotion } from '../lib/MotionContext';
 import { useIsPro } from '../lib/useIsPro';
 import { normalizeTitle as nt } from '../lib/format';
+import { apiFetch } from '../lib/apiFetch';
 import styles from './HigherOrLower.module.css';
 
-
-const FALLBACK_ARTICLES = [
-  'Taylor Swift', 'The Beatles', 'Michael Jackson', 'Elvis Presley', 'Beyoncé',
-  'Albert Einstein', 'Isaac Newton', 'Nikola Tesla', 'Stephen Hawking',
-  'World War II', 'World War I', 'French Revolution', 'American Civil War',
-  'United States', 'China', 'India', 'United Kingdom', 'Russia',
-  'New York City', 'London', 'Paris', 'Tokyo', 'Sydney',
-  'Elon Musk', 'Jeff Bezos', 'Bill Gates', 'Steve Jobs', 'Mark Zuckerberg',
-  'Jesus', 'Muhammad', 'Adolf Hitler', 'Napoleon Bonaparte', 'Julius Caesar',
-  'Barack Obama', 'Donald Trump', 'Abraham Lincoln', 'Winston Churchill',
-  'Spider-Man', 'Batman', 'Superman', 'Iron Man',
-  'Titanic (1997 film)', 'Avatar (2009 film)', 'The Dark Knight',
-  'Game of Thrones', 'Breaking Bad', 'Friends (TV series)',
-  'Minecraft', 'Grand Theft Auto V', 'Fortnite', 'League of Legends',
-  'Dog', 'Cat', 'Lion', 'Tiger', 'Elephant',
-  'Pizza', 'Hamburger', 'Sushi', 'Coffee',
-  'Moon', 'Mars', 'Black hole', 'Solar System',
-  'DNA', 'Evolution', 'Quantum mechanics', 'Artificial intelligence',
-  'Association football', 'Basketball', 'Tennis',
-  'LeBron James', 'Michael Jordan', 'Cristiano Ronaldo', 'Lionel Messi',
-  'Bitcoin', 'Cryptocurrency',
-  'Apple Inc.', 'Google', 'Amazon (company)', 'Microsoft',
-  'Harry Potter', 'The Lord of the Rings', 'Star Wars',
-  'William Shakespeare', 'Charles Darwin', 'Leonardo da Vinci',
-  'Roman Empire', 'Ancient Egypt', 'Ancient Greece',
-  'Climate change', 'COVID-19 pandemic',
-  'Human', 'Earth', 'Universe', 'Water',
-  'Music', 'Art', 'Science', 'Mathematics', 'Philosophy',
-  'Death', 'Love', 'War', 'Religion',
-  'Cleopatra', 'Aristotle', 'Socrates', 'Plato',
-  'English language', 'Spanish language', 'French language',
-  'Nutrition', 'Exercise', 'Depression (mood)', 'Anxiety',
-];
 
 function articleUrl(title) {
   return `https://en.wikipedia.org/wiki/${encodeURIComponent(title.replaceAll(' ', '_'))}`;
@@ -49,43 +17,6 @@ function formatViews(n) {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
   if (n >= 1_000)    return `${(n / 1_000).toFixed(0)}K`;
   return String(n);
-}
-
-async function fetchViews(title) {
-  const now     = new Date();
-  const d       = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-  const year    = d.getFullYear();
-  const month   = String(d.getMonth() + 1).padStart(2, '0');
-  const lastDay = new Date(year, d.getMonth() + 1, 0).getDate();
-  const start   = `${year}${month}01`;
-  const end     = `${year}${month}${String(lastDay).padStart(2, '0')}`;
-
-  try {
-    const res = await fetch(
-      `https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia/all-access/all-agents/${encodeURIComponent(title)}/monthly/${start}/${end}`
-    );
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data.items?.[0]?.views ?? null;
-  } catch {
-    return null;
-  }
-}
-
-let ACTIVE_ARTICLES = FALLBACK_ARTICLES;
-let articlesFetchPromise = null;
-
-function ensureArticlesLoaded() {
-  if (articlesFetchPromise) return articlesFetchPromise;
-  articlesFetchPromise = fetch('/api/higherlower/articles')
-    .then(r => r.json())
-    .then(({ articles }) => {
-      if (Array.isArray(articles) && articles.length >= 50) {
-        ACTIVE_ARTICLES = articles;
-      }
-    })
-    .catch(() => {});
-  return articlesFetchPromise;
 }
 
 async function fetchSnapshot(title) {
@@ -103,18 +34,9 @@ async function fetchSnapshot(title) {
   }
 }
 
-function pickPair(exclude = []) {
-  const pool = ACTIVE_ARTICLES.filter(a => !exclude.includes(a));
-  if (pool.length < 2) return [ACTIVE_ARTICLES[0], ACTIVE_ARTICLES[1]];
-  const a = pool[Math.floor(Math.random() * pool.length)];
-  let b;
-  do { b = pool[Math.floor(Math.random() * pool.length)]; } while (b === a);
-  return [a, b];
-}
-
 export default function HigherOrLower() {
   const isPro       = useIsPro();
-  const { isSignedIn, user } = useUser();
+  const { isSignedIn, isLoaded } = useUser();
   const { getToken }   = useAuth();
   const { enabled: motion } = useMotion();
 
@@ -128,11 +50,12 @@ export default function HigherOrLower() {
   const [picked, setPicked]   = useState(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
-  const [seen, setSeen]       = useState([]);
   const [snapA, setSnapA]     = useState(null);
   const [snapB, setSnapB]     = useState(null);
 
-  const loadPair = useCallback(async (exclude = []) => {
+  const gameIdRef = useRef(null);
+
+  const loadPair = useCallback(async () => {
     setLoading(true);
     setPhase('playing');
     setPicked(null);
@@ -142,35 +65,33 @@ export default function HigherOrLower() {
     setSnapA(null);
     setSnapB(null);
 
-    let a, b, va, vb;
-    let attempts = 0;
-
-    do {
-      [a, b] = pickPair(exclude);
-      [va, vb] = await Promise.all([fetchViews(a), fetchViews(b)]);
-      attempts++;
-    } while ((va === null || vb === null || va === vb) && attempts < 8);
-
-    if (va === null || vb === null || va === vb) {
-      setLoading(false);
-      setLoadError('Could not load article data. Try again.');
-      return;
+    try {
+      let pair;
+      if (gameIdRef.current) {
+        pair = await apiFetch(`/api/higherlower/${encodeURIComponent(gameIdRef.current)}/next`, { method: 'POST' });
+      } else {
+        const token = isSignedIn ? await getToken() : null;
+        pair = await apiFetch('/api/higherlower/start', {
+          method: 'POST',
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+        gameIdRef.current = pair.gameId;
+        setStreak(0);
+      }
+      setTitleA(pair.titleA);
+      setTitleB(pair.titleB);
+      fetchSnapshot(pair.titleA).then(setSnapA);
+      fetchSnapshot(pair.titleB).then(setSnapB);
+    } catch (err) {
+      gameIdRef.current = null;
+      setLoadError(err.message || 'Could not load article data. Try again.');
     }
-
-    setTitleA(a);
-    setTitleB(b);
-    setViewsA(va);
-    setViewsB(vb);
-    setSeen(prev => [...prev, a, b]);
     setLoading(false);
-
-    fetchSnapshot(a).then(setSnapA);
-    fetchSnapshot(b).then(setSnapB);
-  }, []);
+  }, [isSignedIn, getToken]);
 
   useEffect(() => {
-    ensureArticlesLoaded().then(() => loadPair());
-  }, []);
+    if (isLoaded) loadPair();
+  }, [isLoaded]);
 
   useEffect(() => {
     if (!isPro || !isSignedIn) return;
@@ -182,43 +103,37 @@ export default function HigherOrLower() {
     );
   }, [isPro, isSignedIn]);
 
-  function guess(pick) {
-    if (phase !== 'playing' || loading) return;
+  async function guess(pick) {
+    if (phase !== 'playing' || loading || !gameIdRef.current) return;
     setPicked(pick);
     setPhase('reveal');
 
-    const correct = pick === 'A' ? viewsA > viewsB : viewsB > viewsA;
-
-    if (correct) {
-      const newStreak = streak + 1;
-      setStreak(newStreak);
-      setBest(prev => Math.max(prev, newStreak));
-      submitStreak(newStreak);
-      setTimeout(() => loadPair(seen.length > ACTIVE_ARTICLES.length * 0.6 ? [] : seen), 1800);
-    } else {
-      setPhase('gameover');
-      submitStreak(streak);
+    try {
+      const result = await apiFetch(`/api/higherlower/${encodeURIComponent(gameIdRef.current)}/guess`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pick }),
+      });
+      setViewsA(result.viewsA);
+      setViewsB(result.viewsB);
+      setStreak(result.streak);
+      setBest(prev => Math.max(prev, result.best || 0, result.streak));
+      if (result.correct) {
+        setTimeout(loadPair, 1800);
+      } else {
+        gameIdRef.current = null;
+        setPhase('gameover');
+      }
+    } catch (err) {
+      setPicked(null);
+      setPhase('playing');
+      setLoadError(err.message);
     }
   }
 
-  function submitStreak(finalStreak) {
-    if (!isSignedIn || finalStreak <= 0) return;
-    getToken().then(token =>
-      fetch('/api/higherlower/streak', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: user?.username || user?.firstName || 'Guest', streak: finalStreak }),
-      })
-        .then(r => r.json())
-        .then(d => { if (d.ok) setBest(prev => Math.max(prev, d.best)); })
-        .catch(() => {})
-    );
-  }
-
   function restart() {
-    setStreak(0);
-    setSeen([]);
-    loadPair([]);
+    gameIdRef.current = null;
+    loadPair();
   }
 
   const winner = viewsA !== null && viewsB !== null
@@ -330,7 +245,7 @@ export default function HigherOrLower() {
 
               {loading && <div className={styles.loading}>Loading article data...</div>}
               {loadError && (
-                <button className={styles.retryBtn} onClick={() => loadPair(seen.length > ACTIVE_ARTICLES.length * 0.6 ? [] : seen)}>
+                <button className={styles.retryBtn} onClick={loadPair}>
                   {loadError}
                 </button>
               )}

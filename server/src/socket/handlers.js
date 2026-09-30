@@ -1,5 +1,6 @@
 const gm = require('../game/GameManager');
 const { isValidLink } = require('../game/validator');
+const { cleanClientHistory } = require('../game/pathCheck');
 const { saveGameHistory, getUserElo } = require('../db');
 const { resolveSocketUser, verifyProUser } = require('../lib/socketAuth');
 const log = require('../lib/logger');
@@ -184,6 +185,7 @@ function setupSocketHandlers(io) {
         if (!player || player.finished || player.eliminated) return cb?.({ ok: false });
 
         const valid = await isValidLink(player.currentArticle, to);
+        if (valid === null) return cb?.({ ok: false, retry: true, error: 'Could not check that link. Try again.' });
         if (!valid) {
           socket.emit('link-invalid', { from: player.currentArticle, to });
           return cb?.({ ok: false, error: 'Invalid link' });
@@ -273,16 +275,7 @@ function setupSocketHandlers(io) {
 
     socket.on('solo-complete', (data) => {
       if (!socket.user.userId) return;
-      saveGameHistory({
-        userId:      socket.user.userId,
-        pairId:      data.pairId,
-        pathTaken:   data.path,
-        clicks:      data.clicks,
-        timeSeconds: data.timeSeconds,
-        completed:   data.completed,
-        score:       data.score,
-        mode:        'solo',
-      });
+      saveGameHistory(cleanClientHistory(socket.user.userId, { ...data, mode: 'solo' }));
     });
 
     socket.on('disconnect', () => {

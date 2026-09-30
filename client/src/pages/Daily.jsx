@@ -291,12 +291,10 @@ export default function Daily() {
 
     try {
       const token    = await getToken();
-      const username = user?.username || user?.firstName || 'Player';
       const res = await fetch('/api/leaderboard/daily', {
         method:  'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-
-        body:    JSON.stringify({ username, score: 0, clicks: finalClicks, timeSeconds }),
+        body:    JSON.stringify({ clicks: finalClicks, timeSeconds, path: finalHistory.slice(0, finalIdx + 1) }),
       });
       const data = await res.json();
       if (res.ok) {
@@ -483,7 +481,7 @@ export default function Daily() {
           {!isSignedIn && (
             <div className={styles.guestNudge}>
               <p className={styles.guestNudgeText}>Sign in to save your streak and get your name on the leaderboard.</p>
-              <SignInButton mode="modal" afterSignInUrl="/daily">
+              <SignInButton mode="modal" forceRedirectUrl="/daily">
                 <button className={styles.guestNudgeBtn}>Sign in free</button>
               </SignInButton>
             </div>

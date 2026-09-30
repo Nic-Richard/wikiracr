@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { useUser, useAuth } from '@clerk/clerk-react';
-import { fetchPairFromServer } from '../lib/pairApi';
+import { fetchPairFromServer, startSpeedrun, nextSpeedrunPair } from '../lib/pairApi';
 import { connectMultiplayerRoom } from '../lib/gameSocket';
 import RoundSkippedScreen from '../components/game/RoundSkippedScreen';
 import RoundOverScreen from '../components/game/RoundOverScreen';
@@ -94,6 +94,7 @@ export default function Game() {
   }
 
   const startTimeRef = useRef(null);
+  const speedrunIdRef = useRef(null);
   const timerRef     = useRef(null);
   const socketRef    = useRef(null);
 
@@ -120,7 +121,10 @@ export default function Game() {
   function fetchPair(diff = difficulty) {
     setPhase('loading');
     setLoadError(null);
-    fetchPairFromServer(diff)
+    const request = isSpeedrun
+      ? startSpeedrun(diff).then(({ runId, pair: p }) => { speedrunIdRef.current = runId; return p; })
+      : fetchPairFromServer(diff);
+    request
       .then(p => { setPair(p); setPhase('preround'); })
       .catch(e => setLoadError(e.message));
   }
@@ -128,7 +132,7 @@ export default function Game() {
   function fetchNextSpeedrunPair() {
     setPhase('loading');
     setLoadError(null);
-    fetchPairFromServer(difficulty)
+    nextSpeedrunPair(speedrunIdRef.current)
       .then(p => {
         setPair(p);
         setNavHist([p.startTitle]);
@@ -222,7 +226,7 @@ export default function Game() {
     setClicks(newClicks);
     if (titlesMatch(toArticle, pair.endTitle)) {
       if (isSpeedrun) {
-        advanceSpeedrunRound(newClicks);
+        advanceSpeedrunRound(newClicks, newHistory);
       } else {
         finishSolo(newClicks, false, newHistory);
       }
@@ -244,7 +248,7 @@ export default function Game() {
         });
         setClicks(c => c + 1);
       } else {
-        setLinkRejected(true);
+        setLinkRejected(response?.retry ? response.error : "That link isn't on this page, try again");
         setTimeout(() => setLinkRejected(false), 2500);
       }
     });
@@ -322,13 +326,14 @@ export default function Game() {
     }
   }
 
-  function advanceSpeedrunRound(roundClicks) {
+  function advanceSpeedrunRound(roundClicks, roundPath) {
     const roundSeconds = Math.floor((Date.now() - startTimeRef.current) / 1000);
     const bankedTotal  = speedrunBankedSeconds + roundSeconds;
     const completedRound = {
       startTitle:    pair.startTitle,
       endTitle:      pair.endTitle,
       clicks:        roundClicks,
+      path:          roundPath,
       optimalClicks: (pair.optimalPath?.length || 1) - 1,
       roundSeconds,
       optimalPath:   pair.optimalPath || [],
@@ -341,7 +346,7 @@ export default function Game() {
       clearInterval(timerRef.current);
       setSpeedrunResults({ rounds: updatedRounds, totalSeconds: bankedTotal, timedOut: false });
       setPhase('speedrun-results');
-      submitSpeedrunScore(updatedRounds, bankedTotal);
+      submitSpeedrunScore(updatedRounds);
       return;
     }
 
@@ -350,15 +355,16 @@ export default function Game() {
     fetchNextSpeedrunPair();
   }
 
-  async function submitSpeedrunScore(rounds, totalSeconds) {
+  async function submitSpeedrunScore(rounds) {
     try {
-      const token      = await getToken();
-      const username   = user?.username || user?.firstName || 'Player';
-      const totalClicks = rounds.reduce((sum, r) => sum + r.clicks, 0);
+      const token = await getToken();
       await fetch('/api/leaderboard/speedrun', {
         method:  'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ username, difficulty, totalSeconds, clicks: totalClicks }),
+        body:    JSON.stringify({
+          runId:  speedrunIdRef.current,
+          rounds: rounds.map(r => ({ path: r.path, clicks: r.clicks })),
+        }),
       });
     } catch {
     }
