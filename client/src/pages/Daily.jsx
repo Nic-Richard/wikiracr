@@ -105,6 +105,7 @@ export default function Daily() {
   const shareBoxRef = useRef(null);
   const elapsedMsRef = useRef(0);
   const activeStartRef = useRef(null);
+  const clockQueueRef = useRef(Promise.resolve());
   const [resetIn, setResetIn]           = useState(msUntilNextUTCMidnight());
 
   const currentArticle = navHist[histIdx] ?? '';
@@ -126,10 +127,23 @@ export default function Daily() {
       } else if (!activeStartRef.current) {
         activeStartRef.current = Date.now();
       }
+      if (isSignedIn) syncDailyClock(!document.hidden).catch(() => {});
+    }
+    const heartbeat = isSignedIn ? setInterval(() => {
+      if (!document.hidden) syncDailyClock(true).catch(() => {});
+    }, 10_000) : null;
+    function onPageHide() {
+      if (isSignedIn) syncDailyClock(false).catch(() => {});
     }
     document.addEventListener('visibilitychange', onVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', onVisibilityChange);
-  }, [phase]);
+    window.addEventListener('pagehide', onPageHide);
+    return () => {
+      clearInterval(heartbeat);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      window.removeEventListener('pagehide', onPageHide);
+      if (isSignedIn) syncDailyClock(false).catch(() => {});
+    };
+  }, [phase, isSignedIn, date, getToken]);
 
   useEffect(() => {
     if (phase !== 'results') return;
@@ -159,7 +173,7 @@ export default function Daily() {
       if (status.completed) {
         setResult({ clicks: status.result.clicks, timeSeconds: status.result.timeSeconds || 0 });
         fetchLeaderboard(status.date);
-        fetchPairForDisplay();
+        setPair(status.pair);
         setPhase('results');
         return;
       }
@@ -185,11 +199,17 @@ export default function Daily() {
       .catch(e => setLoadError(e.message));
   }
 
-  function fetchPairForDisplay() {
-    fetch('/api/daily')
-      .then(r => r.json())
-      .then(({ pair: p }) => { if (p) setPair(p); })
-      .catch(() => {});
+  function syncDailyClock(active) {
+    const request = clockQueueRef.current.catch(() => {}).then(async () => {
+      const token = await getToken();
+      return apiFetch('/api/daily/clock', {
+        method: 'POST', keepalive: true,
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ date, active }),
+      });
+    });
+    clockQueueRef.current = request;
+    return request;
   }
 
   function fetchLeaderboard(forDate) {
@@ -226,7 +246,13 @@ export default function Daily() {
     setTimeout(() => startGame(), 2400);
   }
 
-  function startGame() {
+  async function startGame() {
+    try {
+      if (isSignedIn) await syncDailyClock(!document.hidden);
+    } catch (error) {
+      setLoadError(error.message);
+      return;
+    }
     setNavHist([pair.startTitle]);
     setHistIdx(0);
     setClicks(0);
@@ -235,11 +261,18 @@ export default function Daily() {
     setPhase('playing');
   }
 
-  function resumeGame() {
+  async function resumeGame() {
+    let elapsedMs = savedProgress.elapsedMs || 0;
+    try {
+      if (isSignedIn) elapsedMs = (await syncDailyClock(!document.hidden)).elapsedMs;
+    } catch (error) {
+      setLoadError(error.message);
+      return;
+    }
     setNavHist(savedProgress.navHist);
     setHistIdx(savedProgress.histIdx);
     setClicks(savedProgress.clicks);
-    elapsedMsRef.current = savedProgress.elapsedMs || 0;
+    elapsedMsRef.current = elapsedMs;
     activeStartRef.current = document.hidden ? null : Date.now();
     setPhase('playing');
   }
@@ -281,25 +314,45 @@ export default function Daily() {
   async function finish(finalClicks, finalHistory, finalIdx) {
     const activeMs = activeStartRef.current ? Date.now() - activeStartRef.current : 0;
     activeStartRef.current = null;
-    const timeSeconds = Math.max(0, Math.round((elapsedMsRef.current + activeMs) / 1000));
+    let timeSeconds = Math.max(0, Math.round((elapsedMsRef.current + activeMs) / 1000));
     setResult({ clicks: finalClicks, timeSeconds });
     setSubmitError(null);
     setPhase('results');
     fetchLeaderboard(date);
 
-    if (!isSignedIn) { clearGuestProgress(date); return; }
+    const path = finalHistory.slice(0, finalIdx + 1);
+    if (!isSignedIn) {
+      clearGuestProgress(date);
+      try {
+        const data = await apiFetch('/api/daily/finish', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ date, path, clicks: finalClicks }),
+        });
+        setPair(p => ({ ...p, optimalPath: data.optimalPath }));
+      } catch {
+        setSubmitError('Could not load the shortest path. Your result still counts on this screen.');
+      }
+      return;
+    }
 
     try {
+      await syncDailyClock(false);
       const token    = await getToken();
       const res = await fetch('/api/leaderboard/daily', {
         method:  'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ clicks: finalClicks, timeSeconds, path: finalHistory.slice(0, finalIdx + 1) }),
+        body:    JSON.stringify({ date, clicks: finalClicks, path }),
       });
       const data = await res.json();
       if (res.ok) {
         setStreak(data.streak ?? streak);
-      } else if (res.status !== 409) {
+        timeSeconds = data.timeSeconds;
+        setResult({ clicks: finalClicks, timeSeconds });
+        setPair(p => ({ ...p, optimalPath: data.optimalPath }));
+      } else if (res.status === 409) {
+        checkStatusThenLoad();
+        return;
+      } else {
         throw new Error(data.error || 'submit failed');
       }
       await fetch('/api/me/game', {
@@ -317,7 +370,7 @@ export default function Daily() {
   }
 
   function copyResult() {
-    const optClicks = pair ? (pair.optimalPath?.length || 1) - 1 : null;
+    const optClicks = pair?.pathLength ?? null;
     const text = buildShareText(date, result, streak, optClicks);
     navigator.clipboard.writeText(text).then(() => {
       setShareCopied(true);
@@ -326,7 +379,7 @@ export default function Daily() {
   }
 
   function shareTo(platform) {
-    const optClicks = pair ? (pair.optimalPath?.length || 1) - 1 : null;
+    const optClicks = pair?.pathLength ?? null;
     const text = buildShareText(date, result, streak, optClicks);
     const encoded = encodeURIComponent(text);
     const urls = {
@@ -450,7 +503,7 @@ export default function Daily() {
   }
 
   if (phase === 'results' && result) {
-    const optClicks = pair ? (pair.optimalPath?.length || 1) - 1 : null;
+    const optClicks = pair?.pathLength ?? null;
     const myName    = user?.username || user?.firstName;
     const myRank    = leaderboard.findIndex(r => r.username === myName);
     const resetHrs  = Math.floor(resetIn / 3_600_000);

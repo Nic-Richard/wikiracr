@@ -9,6 +9,7 @@ const {
   getUserHistory, getDailyLeaderboard, upsertDailyScore,
   getUserDailyResult, getUserStreak, getUserBestStreak,
   getDailyProgress, saveDailyProgress, clearDailyProgress,
+  getDailyClock, updateDailyClock,
   upsertSpeedrunScore, getSpeedrunLeaderboard, getUserSpeedrunBests,
   getEloLeaderboard, getUserElo,
   saveGameHistory,
@@ -31,7 +32,7 @@ function sendGameError(res, err, label) {
 router.get('/pair', (req, res) => {
   try {
     const { difficulty = 'random', pathLength } = req.query;
-    const pair = getPair(difficulty, pathLength ? parseInt(pathLength) : null);
+    const pair = getPair(difficulty, pathLength ? parseInt(pathLength) : null, getDailyChallenge()?.id);
     if (!pair) return res.status(404).json({ error: 'No pairs available for this difficulty' });
     res.json({ pair: { id: pair.id, startTitle: pair.start_title, endTitle: pair.end_title, pathLength: pair.path_length, optimalPath: JSON.parse(pair.optimal_path) } });
   } catch (err) {
@@ -48,7 +49,7 @@ router.get('/daily', (req, res) => {
     date: today,
     pair: {
       id: pair.id, startTitle: pair.start_title, endTitle: pair.end_title,
-      pathLength: pair.path_length, optimalPath: JSON.parse(pair.optimal_path),
+      pathLength: pair.path_length,
     },
   });
 });
@@ -57,23 +58,52 @@ router.get('/daily/status', requireAuth, (req, res) => {
   const today  = new Date().toISOString().split('T')[0];
   const result = getUserDailyResult(req.userId, today);
   const streak = getUserStreak(req.userId);
+  const pair = result ? getDailyChallenge() : null;
   res.json({
     completed: !!result,
     result: result ? { score: result.score, clicks: result.clicks, timeSeconds: result.time_seconds } : null,
     progress: result ? null : getDailyProgress(req.userId, today),
     streak,
     date: today,
+    pair: pair ? { id: pair.id, startTitle: pair.start_title, endTitle: pair.end_title,
+      pathLength: pair.path_length, optimalPath: JSON.parse(pair.optimal_path) } : null,
   });
 });
 
-router.post('/daily/progress', requireAuth, (req, res) => {
-  const { navHist, histIdx, clicks, elapsedMs } = req.body;
+router.post('/daily/clock', requireAuth, (req, res) => {
   const today = new Date().toISOString().split('T')[0];
-  if (!Array.isArray(navHist) || typeof histIdx !== 'number' || typeof clicks !== 'number') {
+  if (req.body?.date !== today || typeof req.body?.active !== 'boolean') {
+    return res.status(400).json({ error: 'Invalid daily clock request' });
+  }
+  if (getUserDailyResult(req.userId, today)) return res.status(409).json({ error: 'Already completed today' });
+  res.json(updateDailyClock(req.userId, today, req.body.active));
+});
+
+router.post('/daily/finish', async (req, res) => {
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    if (req.body?.date !== today) return res.status(400).json({ error: 'This daily challenge has ended' });
+    const pair = getDailyChallenge();
+    if (!pair) return res.status(404).json({ error: 'No daily challenge available' });
+    const hops = await verifyPath(req.body.path, pair.start_title, pair.end_title);
+    checkClicks(req.body.clicks, hops);
+    res.json({ optimalPath: JSON.parse(pair.optimal_path) });
+  } catch (err) {
+    sendGameError(res, err, 'daily');
+  }
+});
+
+router.post('/daily/progress', requireAuth, (req, res) => {
+  const { navHist, histIdx, clicks } = req.body;
+  const today = new Date().toISOString().split('T')[0];
+  if (!Array.isArray(navHist) || navHist.length < 1 || navHist.length > 1000
+    || navHist.some(title => typeof title !== 'string' || title.length > 300)
+    || !Number.isInteger(histIdx) || histIdx < 0 || histIdx >= navHist.length
+    || !Number.isInteger(clicks) || clicks < 0 || clicks > 1000) {
     return res.status(400).json({ error: 'Invalid progress payload' });
   }
-  const safeElapsedMs = typeof elapsedMs === 'number' && elapsedMs >= 0 ? elapsedMs : 0;
-  saveDailyProgress(req.userId, today, navHist, histIdx, clicks, safeElapsedMs);
+  if (getUserDailyResult(req.userId, today)) return res.status(409).json({ error: 'Already completed today' });
+  saveDailyProgress(req.userId, today, navHist, histIdx, clicks, getDailyClock(req.userId, today)?.elapsedMs || 0);
   res.json({ ok: true });
 });
 
@@ -116,7 +146,7 @@ router.get('/leaderboard/daily', (req, res) => {
 });
 
 router.post('/leaderboard/daily', requireAuth, async (req, res) => {
-  const { clicks, timeSeconds, path } = req.body;
+  const { clicks, path } = req.body;
   const today = new Date().toISOString().split('T')[0];
 
   if (getUserDailyResult(req.userId, today)) {
@@ -124,19 +154,23 @@ router.post('/leaderboard/daily', requireAuth, async (req, res) => {
   }
 
   try {
+    if (req.body.date !== today) return res.status(400).json({ error: 'This daily challenge has ended' });
+    if (!getDailyClock(req.userId, today)) return res.status(409).json({ error: 'Start the daily challenge before submitting' });
+    const timeSeconds = updateDailyClock(req.userId, today, false).elapsedMs / 1000;
     const pair = getDailyChallenge();
     if (!pair) return res.status(404).json({ error: 'No daily challenge available' });
     const hops = await verifyPath(path, pair.start_title, pair.end_title);
     checkClicks(clicks, hops);
-    // The daily clock only runs while the tab is visible, so the server can only rule out impossible times.
     if (!Number.isFinite(timeSeconds) || timeSeconds < hops * MIN_SECONDS_PER_CLICK || timeSeconds > 7 * 86400) {
       return res.status(400).json({ error: 'Invalid time' });
     }
     const username = await accountName(req.userId);
     const score = calcScore(clicks, pair.path_length, timeSeconds);
-    upsertDailyScore({ userId: req.userId, username, date: today, score, clicks, timeSeconds: Math.round(timeSeconds) });
+    const saved = upsertDailyScore({ userId: req.userId, username, date: today, score, clicks, timeSeconds: Math.round(timeSeconds) });
+    if (!saved.changes) return res.status(409).json({ error: 'Already submitted a result for today' });
     clearDailyProgress(req.userId, today);
-    res.json({ ok: true, streak: getUserStreak(req.userId) });
+    res.json({ ok: true, streak: getUserStreak(req.userId), timeSeconds: Math.round(timeSeconds),
+      optimalPath: JSON.parse(pair.optimal_path) });
   } catch (err) {
     sendGameError(res, err, 'daily');
   }
@@ -164,9 +198,17 @@ router.post('/speedrun/start', (req, res) => {
   }
 });
 
-router.post('/speedrun/:runId/next', (req, res) => {
+router.post('/speedrun/:runId/next', async (req, res) => {
   try {
-    res.json(speedrunRuns.nextRound(req.params.runId));
+    res.json(await speedrunRuns.nextRound(req.params.runId, req.body));
+  } catch (err) {
+    sendGameError(res, err, 'speedrun');
+  }
+});
+
+router.post('/speedrun/:runId/finish', async (req, res) => {
+  try {
+    res.json(await speedrunRuns.finishRun(req.params.runId, req.body?.rounds));
   } catch (err) {
     sendGameError(res, err, 'speedrun');
   }

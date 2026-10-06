@@ -43,7 +43,7 @@ The generator runs locally because the Wikimedia dumps and graph caches are larg
 
 ### Prerequisites
 
-- Node.js 18 or newer
+- Node.js 22.13 or newer
 - npm
 - Python 3.8 or newer only when rebuilding datasets
 - Clerk development keys
@@ -93,6 +93,25 @@ Open `http://localhost:5173`.
 | `VITE_SERVER_URL` | API and Socket.IO server URL |
 
 Never commit real environment files. The included `.env.example` files contain placeholders only.
+
+## Checks
+
+```bash
+npm ci --prefix server
+npm ci --prefix client
+npm run smoke:room --prefix server
+npm test --prefix server
+npm run build --prefix client
+```
+
+GitHub Actions runs these checks and server syntax checks on pushes to main and pull requests.
+The tests use local fixtures; they do not contact Wikipedia, Clerk, or Stripe. Database tests
+exercise the SQL against Node's in-memory SQLite engine.
+
+Daily and speedrun challenges reveal optimal routes after a verified completion. Signed-in
+daily attempts use a persisted server clock, with visibility updates every ten seconds and
+a thirty-second grace period if a tab disappears. Existing saved paths remain resumable;
+older browser-reported elapsed times are not used for leaderboard scores.
 
 ## Dataset generation
 

@@ -2,6 +2,7 @@ const Database = require('better-sqlite3');
 const path = require('path');
 const fs   = require('fs');
 const log  = require('./lib/logger');
+const { advanceClock } = require('./game/dailyClock');
 
 let db;
 let appDb;
@@ -65,6 +66,14 @@ function initDb() {
       time_seconds INTEGER NOT NULL,
       created_at INTEGER NOT NULL,
       UNIQUE (user_id, date)
+    );
+
+    CREATE TABLE IF NOT EXISTS daily_clock (
+      user_id    TEXT NOT NULL,
+      date       TEXT NOT NULL,
+      elapsed_ms INTEGER NOT NULL DEFAULT 0,
+      active_at  INTEGER,
+      PRIMARY KEY (user_id, date)
     );
 
     CREATE INDEX IF NOT EXISTS idx_history_user ON game_history (user_id);
@@ -138,23 +147,23 @@ function getHigherLowerArticles() {
   return higherLowerTitles;
 }
 
-function getPair(difficulty = 'random', pathLength = null) {
+function getPair(difficulty = 'random', pathLength = null, excludeId = null) {
 
   if (pathLength !== null) {
     return db.prepare(
-      'SELECT * FROM pairs WHERE path_length = ? ORDER BY RANDOM() LIMIT 1'
-    ).get(pathLength);
+      'SELECT * FROM pairs WHERE path_length = ? AND (? IS NULL OR id != ?) ORDER BY RANDOM() LIMIT 1'
+    ).get(pathLength, excludeId, excludeId);
   }
 
   const tier = TIER_NAMES.includes(difficulty) ? difficulty : TIER_NAMES[Math.floor(Math.random() * TIER_NAMES.length)];
 
   const pair = db.prepare(
-    'SELECT * FROM pairs WHERE tier = ? ORDER BY RANDOM() LIMIT 1'
-  ).get(tier);
+    'SELECT * FROM pairs WHERE tier = ? AND (? IS NULL OR id != ?) ORDER BY RANDOM() LIMIT 1'
+  ).get(tier, excludeId, excludeId);
   if (pair) return pair;
 
   log.warn(`[db] no pairs tagged tier="${tier}" yet, falling back to full pool`);
-  return db.prepare('SELECT * FROM pairs ORDER BY RANDOM() LIMIT 1').get();
+  return db.prepare('SELECT * FROM pairs WHERE ? IS NULL OR id != ? ORDER BY RANDOM() LIMIT 1').get(excludeId, excludeId);
 }
 
 function getCustomPair(startTitle, endTitle) {
@@ -259,7 +268,22 @@ function getDailyProgress(userId, date) {
     'SELECT nav_hist, hist_idx, clicks, elapsed_ms FROM daily_progress WHERE user_id = ? AND date = ?'
   ).get(userId, date);
   if (!row) return null;
-  return { navHist: JSON.parse(row.nav_hist), histIdx: row.hist_idx, clicks: row.clicks, elapsedMs: row.elapsed_ms };
+  return { navHist: JSON.parse(row.nav_hist), histIdx: row.hist_idx, clicks: row.clicks,
+    elapsedMs: advanceClock(getDailyClock(userId, date), false).elapsedMs };
+}
+
+function getDailyClock(userId, date) {
+  return appDb.prepare('SELECT elapsed_ms AS elapsedMs, active_at AS activeAt FROM daily_clock WHERE user_id = ? AND date = ?')
+    .get(userId, date);
+}
+
+function updateDailyClock(userId, date, active) {
+  const clock = advanceClock(getDailyClock(userId, date), active);
+  appDb.prepare(`
+    INSERT INTO daily_clock (user_id, date, elapsed_ms, active_at) VALUES (?, ?, ?, ?)
+    ON CONFLICT(user_id, date) DO UPDATE SET elapsed_ms = excluded.elapsed_ms, active_at = excluded.active_at
+  `).run(userId, date, clock.elapsedMs, clock.activeAt);
+  return clock;
 }
 
 function saveDailyProgress(userId, date, navHist, histIdx, clicks, elapsedMs) {
@@ -330,7 +354,7 @@ function getUserSpeedrunBests(userId) {
 }
 
 function upsertDailyScore(data) {
-  appDb.prepare(`
+  return appDb.prepare(`
     INSERT INTO leaderboard_daily (user_id, username, date, score, clicks, time_seconds, created_at)
     VALUES (?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(user_id, date) DO NOTHING
@@ -493,6 +517,8 @@ module.exports = {
   upsertDailyScore,
   getUserDailyResult,
   getDailyProgress,
+  getDailyClock,
+  updateDailyClock,
   saveDailyProgress,
   clearDailyProgress,
   getUserStreak,

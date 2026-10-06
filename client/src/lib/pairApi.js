@@ -8,10 +8,16 @@ export async function startSpeedrun(difficulty) {
   return { runId, pair };
 }
 
-export async function nextSpeedrunPair(runId) {
-  const { pair } = await apiFetch(`/api/speedrun/${encodeURIComponent(runId)}/next`, post({}));
+export async function nextSpeedrunPair(runId, round) {
+  const { pair, completedRound } = await apiFetch(`/api/speedrun/${encodeURIComponent(runId)}/next`, post(round));
   if (!pair) throw new Error('No pair returned');
-  return pair;
+  return { pair, completedRound };
+}
+
+export function finishSpeedrun(runId, rounds) {
+  return apiFetch(`/api/speedrun/${encodeURIComponent(runId)}/finish`, post({
+    rounds: rounds.map(({ path, clicks }) => ({ path, clicks })),
+  }));
 }
 
 export async function fetchPairFromServer(difficulty) {

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { useUser, useAuth } from '@clerk/clerk-react';
-import { fetchPairFromServer, startSpeedrun, nextSpeedrunPair } from '../lib/pairApi';
+import { fetchPairFromServer, startSpeedrun, nextSpeedrunPair, finishSpeedrun } from '../lib/pairApi';
 import { connectMultiplayerRoom } from '../lib/gameSocket';
 import RoundSkippedScreen from '../components/game/RoundSkippedScreen';
 import RoundOverScreen from '../components/game/RoundOverScreen';
@@ -126,20 +126,6 @@ export default function Game() {
       : fetchPairFromServer(diff);
     request
       .then(p => { setPair(p); setPhase('preround'); })
-      .catch(e => setLoadError(e.message));
-  }
-
-  function fetchNextSpeedrunPair() {
-    setPhase('loading');
-    setLoadError(null);
-    nextSpeedrunPair(speedrunIdRef.current)
-      .then(p => {
-        setPair(p);
-        setNavHist([p.startTitle]);
-        setHistIdx(0);
-        startTimeRef.current = Date.now();
-        setPhase('playing');
-      })
       .catch(e => setLoadError(e.message));
   }
 
@@ -326,7 +312,10 @@ export default function Game() {
     }
   }
 
-  function advanceSpeedrunRound(roundClicks, roundPath) {
+  async function advanceSpeedrunRound(roundClicks, roundPath) {
+    clearInterval(timerRef.current);
+    setPhase('loading');
+    setLoadError(null);
     const roundSeconds = Math.floor((Date.now() - startTimeRef.current) / 1000);
     const bankedTotal  = speedrunBankedSeconds + roundSeconds;
     const completedRound = {
@@ -334,25 +323,35 @@ export default function Game() {
       endTitle:      pair.endTitle,
       clicks:        roundClicks,
       path:          roundPath,
-      optimalClicks: (pair.optimalPath?.length || 1) - 1,
+      optimalClicks: pair.pathLength,
       roundSeconds,
       optimalPath:   pair.optimalPath || [],
     };
     const updatedRounds = [...speedrunRounds, completedRound];
-    setSpeedrunRounds(updatedRounds);
-    setSpeedrunBankedSeconds(bankedTotal);
-
-    if (updatedRounds.length >= SPEEDRUN_ROUNDS) {
-      clearInterval(timerRef.current);
-      setSpeedrunResults({ rounds: updatedRounds, totalSeconds: bankedTotal, timedOut: false });
-      setPhase('speedrun-results');
-      submitSpeedrunScore(updatedRounds);
-      return;
+    try {
+      if (updatedRounds.length >= SPEEDRUN_ROUNDS) {
+        const result = await finishSpeedrun(speedrunIdRef.current, updatedRounds);
+        setSpeedrunRounds(result.rounds);
+        setSpeedrunResults({ ...result, timedOut: false });
+        setPhase('speedrun-results');
+        submitSpeedrunScore(result.rounds);
+        return;
+      }
+      const { pair: nextPair, completedRound: checkedRound } = await nextSpeedrunPair(speedrunIdRef.current, {
+        path: roundPath, clicks: roundClicks,
+      });
+      setSpeedrunRounds([...speedrunRounds, checkedRound]);
+      setSpeedrunBankedSeconds(bankedTotal);
+      setRoundNum(n => n + 1);
+      setClicks(0);
+      setPair(nextPair);
+      setNavHist([nextPair.startTitle]);
+      setHistIdx(0);
+      startTimeRef.current = Date.now();
+      setPhase('playing');
+    } catch (error) {
+      setLoadError(error.message);
     }
-
-    setRoundNum(n => n + 1);
-    setClicks(0);
-    fetchNextSpeedrunPair();
   }
 
   async function submitSpeedrunScore(rounds) {
