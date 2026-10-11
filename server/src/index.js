@@ -29,6 +29,8 @@ function checkOrigin(origin, callback) {
 }
 
 const app = express();
+// Behind nginx; req.ip should be the visitor, not the proxy.
+app.set('trust proxy', 1);
 const server = http.createServer(app);
 
 const io = new Server(server, {

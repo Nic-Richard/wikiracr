@@ -25,7 +25,7 @@ export default function Privacy() {
           <section className={styles.hero}>
             <p className={styles.kicker}>PRIVACY POLICY</p>
             <h1>Privacy Policy</h1>
-            <p className={styles.updated}>Last updated: September 28, 2026</p>
+            <p className={styles.updated}>Last updated: October 11, 2026</p>
             <p className={styles.intro}>
               This policy explains what WikiRacr collects, how it is used, what may be visible to other players, and where third-party services fit in. WikiRacr is operated by Nic Richard in New Brunswick, Canada.
             </p>
@@ -88,7 +88,7 @@ export default function Privacy() {
             <section className={styles.section}>
               <h2>6. Third-party providers</h2>
               <p>
-                WikiRacr depends on third-party providers to operate the service. This includes Clerk for authentication, Stripe for payments and billing, TraceTray for analytics, Wikipedia and Wikimedia services for article content and link data, and hosting or server infrastructure for running the website and API.
+                WikiRacr depends on third-party providers to operate the service. This includes Clerk for authentication, Stripe for payments and billing, TraceTray for analytics, Discord for private staff notifications (report text, Pro payment events and error details, sent to a channel only WikiRacr's operator can read), Wikipedia and Wikimedia services for article content and link data, and hosting or server infrastructure for running the website and API.
               </p>
               <p>
                 These providers may process information according to their own terms and privacy policies. WikiRacr does not control Wikipedia article content, Wikimedia availability, Clerk authentication systems, Stripe billing systems, or hosting provider logs.

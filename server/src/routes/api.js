@@ -1,5 +1,7 @@
 const express = require('express');
 const log = require('../lib/logger');
+const { sendAlert } = require('../lib/alerts');
+const { rateLimit } = require('../lib/rateLimit');
 const router  = express.Router();
 const stripe  = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const clerk   = require('../lib/clerk');
@@ -269,7 +271,14 @@ router.post('/higherlower/:gameId/next', async (req, res) => {
 
 const REPORT_TYPES = ['pair', 'bug', 'other'];
 
-router.post('/report', optionalAuth, (req, res) => {
+const reportLimit = rateLimit({
+  limit: 10,
+  windowMs: 60 * 60 * 1000,
+  key: (req) => req.userId || req.ip,
+  message: 'Too many reports. Try again in a little while.',
+});
+
+router.post('/report', optionalAuth, reportLimit, (req, res) => {
   const { type, message, context } = req.body;
   if (!REPORT_TYPES.includes(type)) {
     return res.status(400).json({ error: 'Invalid report type' });
@@ -281,6 +290,15 @@ router.post('/report', optionalAuth, (req, res) => {
     return res.status(400).json({ error: 'Message too long' });
   }
   saveReport({ type, message, context, userId: req.userId || null });
+  const details = context && typeof context === 'object' ? Object.entries(context).slice(0, 8) : [];
+  sendAlert(type === 'pair' ? 'reports' : 'bugs', {
+    title: { pair: 'Pair report', bug: 'Bug report', other: 'Feedback' }[type],
+    description: message.slice(0, 2000),
+    fields: [
+      { name: 'From', value: req.userId || 'Signed out' },
+      ...details.map(([name, value]) => ({ name, value: JSON.stringify(value).slice(0, 300) })),
+    ],
+  });
   res.json({ ok: true });
 });
 
@@ -329,7 +347,12 @@ router.post('/stripe/webhook', async (req, res) => {
   try {
     event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
   } catch (err) {
-    log.error('[webhook] signature verification failed:', err.message);
+    log.warn('[webhook] signature verification failed:', err.message);
+    sendAlert('billing', {
+      title: 'Stripe webhook refused: bad signature',
+      description: "Check STRIPE_WEBHOOK_SECRET against the endpoint's signing secret.",
+      key: 'stripe-signature',
+    });
     return res.status(400).json({ error: `Webhook error: ${err.message}` });
   }
 
@@ -360,6 +383,10 @@ router.post('/stripe/webhook', async (req, res) => {
         },
       });
       log.info('[webhook] Pro granted to:', clerkUserId);
+      sendAlert('billing', {
+        title: 'Pro started',
+        fields: [{ name: 'User', value: clerkUserId }, { name: 'Customer', value: session.customer }],
+      });
     }
 
     if (event.type === 'customer.subscription.deleted') {
@@ -381,11 +408,19 @@ router.post('/stripe/webhook', async (req, res) => {
         },
       });
       log.info('[webhook] Pro revoked for:', clerkUserId);
+      sendAlert('billing', {
+        title: 'Pro ended',
+        fields: [{ name: 'User', value: clerkUserId }, { name: 'Customer', value: subscription.customer }],
+      });
     }
 
     if (event.type === 'invoice.payment_failed') {
       const invoice = event.data.object;
       log.info('[webhook] payment failed for customer:', invoice.customer);
+      sendAlert('billing', {
+        title: 'Pro payment failed',
+        fields: [{ name: 'Customer', value: invoice.customer }],
+      });
     }
   } catch (err) {
     log.error('[webhook] handler error:', err.message);

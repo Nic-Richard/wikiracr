@@ -1,3 +1,5 @@
+const { errorAlert } = require('./alerts');
+
 const DEBUG_GAME = process.env.DEBUG_GAME === '1';
 
 function debug(...args) {
@@ -14,6 +16,7 @@ function warn(...args) {
 
 function error(...args) {
   console.error(...args);
+  errorAlert(args);
 }
 
 module.exports = { debug, info, warn, error };

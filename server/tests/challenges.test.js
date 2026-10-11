@@ -123,6 +123,8 @@ function routes({ completed = false, elapsedMs = 10_000 } = {}) {
     stripe: () => ({}),
     '../lib/clerk': {},
     '../lib/logger': { error() {} },
+    '../lib/alerts': { sendAlert() {} },
+    '../lib/rateLimit': { rateLimit: () => () => {} },
     '../middleware/auth': {},
     '../game/GameManager': {},
     '../lib/socketAuth': { accountName: async () => 'Player' },
