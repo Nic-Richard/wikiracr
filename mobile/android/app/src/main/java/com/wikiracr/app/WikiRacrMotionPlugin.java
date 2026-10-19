@@ -44,7 +44,7 @@ public class WikiRacrMotionPlugin extends Plugin implements SensorEventListener 
 
     @Override public void onSensorChanged(SensorEvent event) {
         long now = SystemClock.elapsedRealtime();
-        if (now - lastSample < 50) return;
+        if (now - lastSample < 16) return;
         lastSample = now;
         double x = event.values[0], y = event.values[1], z = event.values[2];
         int rotation = getActivity().getWindowManager().getDefaultDisplay().getRotation();
@@ -61,8 +61,8 @@ public class WikiRacrMotionPlugin extends Plugin implements SensorEventListener 
             calibrated = true;
         }
         double deltaY = ((pitch - neutralY + 540) % 360) - 180;
-        smoothX += (Math.max(-0.5, Math.min(0.5, (roll - neutralX) / 18)) - smoothX) * 0.18;
-        smoothY += (Math.max(-0.5, Math.min(0.5, deltaY / 18)) - smoothY) * 0.18;
+        smoothX = Math.max(-0.5, Math.min(0.5, (roll - neutralX) / 18));
+        smoothY = Math.max(-0.5, Math.min(0.5, deltaY / 18));
         notifyListeners("tilt", new JSObject().put("x", smoothX).put("y", smoothY));
     }
 

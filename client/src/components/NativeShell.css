@@ -24,7 +24,7 @@
 .native-info button { display: block; min-height: 48px; margin-top: 22px; background: var(--accent); color: var(--bg); border: 0; border-radius: 7px; padding: 12px 24px; font-weight: 700; }
 .native-app [data-native-menu] { min-height: 0; height: 100%; overflow: hidden; }
 .native-app [data-native-menu] [class*="fg"] { height: 100%; min-height: 0; }
-.native-app [data-native-menu] [class*="center"] { min-height: 0; overflow-y: auto; overscroll-behavior-y: contain; align-items: safe center; padding: 12px 24px 48px; }
+.native-app [data-native-menu] [class*="center"] { min-height: 0; overflow-y: auto; overscroll-behavior-y: contain; align-items: safe center; padding: 12px 24px 72px; touch-action: pan-y; }
 .native-app [data-native-menu] [class*="content"] { width: 100%; max-width: 440px; margin: auto; }
 .native-app [data-native-menu] [class*="topBar"] { padding: 18px 22px; }
 .native-app [data-native-menu] [class*="vignette"] { background: rgba(13,17,23,0.68); }
@@ -41,10 +41,10 @@
 .native-app [data-native-menu] [class*="nudgeText"] { margin-top: 0; }
 .native-app [data-native-menu] [class*="nudgeBtn"] { margin-top: 0; }
 .native-app [data-native-race] { height: calc(100dvh - var(--safe-top) - var(--safe-bottom)); padding-bottom: 0; }
-.native-app [data-native-hud] { padding-left: 12px; padding-right: 12px; }
+.native-app [data-native-hud] { display: flex; flex-direction: column; align-items: stretch; height: auto; gap: 4px; padding: 4px 12px; }
 .native-app [data-native-race] [class*="hudInfoRow"] { width: 100%; display: flex; gap: 6px; }
 .native-app [data-native-race] [class*="hudStartChip"] { display: none; }
-.native-app [data-native-race] [class*="hudGoalChip"] { max-width: none; flex: 1; min-width: 0; padding: 6px 10px; font-size: 14px; line-height: 20px; white-space: normal; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; max-height: 54px; }
+.native-app [data-native-race] [class*="hudGoalChip"] { max-width: 200px; flex: 1 1 0; min-width: 0; padding: 6px 10px; font-size: 14px; line-height: 20px; white-space: normal; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; max-height: 54px; }
 .native-app [data-native-race] [class*="hudCenter"] { min-width: 0; width: 100%; flex: none; }
 .native-app [data-native-race] [class*="hudLeft"] { width: 100%; }
 .native-app [data-native-race] [class*="hudArticle"] { min-width: 0; flex: 1; font-size: 16px; white-space: normal; overflow-wrap: anywhere; line-height: 22px; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; max-height: 44px; }
@@ -53,10 +53,17 @@
 .native-app [data-native-race] [class*="hudRoundBadge"] { font-size: 12px; }
 .native-app [data-native-race] [class*="navBtn"] { width: 44px; height: 44px; font-size: 18px; }
 .native-app [data-native-race] [class*="hudInfoRow"] { flex-direction: column; align-items: stretch; overflow: visible; }
-.native-app [data-native-race] [class*="hudRight"] { margin-left: auto; }
+.native-app [data-native-race] [class*="hudRight"] { margin-left: auto; max-width: 100%; flex-wrap: wrap; justify-content: flex-end; row-gap: 4px; }
 .native-app [data-native-race] [class*="hudOptimal"], .native-app [data-native-race] [class*="hudArrow"] { display: none; }
 .native-app [data-native-race] [class*="bottomBar"] { min-height: 48px; height: auto; padding: 7px 12px; }
 .native-app [data-native-race] [class*="breadcrumb"] { display: none; }
 .native-app [data-native-race] [class*="giveUpBtn"] { min-height: 38px; margin-left: auto; }
 .native-app [data-native-race] [class*="cogBtn"] { min-width: 40px; min-height: 40px; }
 .native-app [data-native-race] iframe { min-height: 0; }
+@media (min-width: 640px) and (max-height: 500px) {
+  .native-app [data-native-hud] { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "article goal" "stats stats"; align-items: center; }
+  .native-app [data-native-race] [class*="hudInfoRow"] { display: contents; }
+  .native-app [data-native-race] [class*="hudLeft"] { grid-area: article; }
+  .native-app [data-native-race] [class*="hudCenter"] { grid-area: goal; justify-content: flex-end; }
+  .native-app [data-native-race] [class*="hudRight"] { grid-area: stats; }
+}

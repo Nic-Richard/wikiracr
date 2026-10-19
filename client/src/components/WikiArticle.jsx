@@ -26,7 +26,9 @@ function clampZoom(value) {
 
 function readStoredZoom() {
   try {
-    const value = Number(localStorage.getItem(ZOOM_STORAGE_KEY));
+    const stored = localStorage.getItem(ZOOM_STORAGE_KEY);
+    if (stored === null || stored.trim() === '') return 100;
+    const value = Number(stored);
     return Number.isFinite(value) ? clampZoom(value) : 100;
   } catch {
     return 100;

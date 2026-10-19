@@ -176,7 +176,7 @@ export default function Menu() {
     });
   }
 
-  const contentStyle = motionEnabled ? {
+  const contentStyle = motionEnabled && !NATIVE_APP ? {
     transform:  `perspective(1200px) rotateX(${tilt.y * (NATIVE_APP ? 1.2 : 0.6)}deg) rotateY(${tilt.x * (NATIVE_APP ? 1.2 : 0.6)}deg)`,
     transition: 'transform 0.18s ease-out',
   } : {};

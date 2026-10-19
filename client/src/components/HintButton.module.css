@@ -17,7 +17,7 @@
 }
 .bulb:hover { border-color: var(--muted); color: var(--text); }
 :global(.native-app) .bulb { width: 44px; height: 44px; font-size: 18px; border-radius: 6px; }
-:global(.native-app) .popover { max-height: 65dvh; overflow-y: auto; }
+:global(.native-app) .popover { width: min(280px, calc(100vw - 32px)); max-height: 65dvh; overflow-y: auto; }
 .bulbOn { border-color: var(--gold); color: var(--gold); }
 
 .popover {

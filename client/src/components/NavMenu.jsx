@@ -50,6 +50,7 @@ export default function NavMenu({ isPro }) {
           <Link to="/account" className={styles.item} onClick={() => setOpen(false)}>Account</Link>
           <Link to="/leaderboard" className={styles.item} onClick={() => setOpen(false)}>Leaderboard</Link>
           <SignedIn>
+            {NATIVE_APP && <Link to="/upgrade" className={styles.item} onClick={() => setOpen(false)}>Pro and subscriptions</Link>}
             {!NATIVE_APP && (isPro
               ? <button className={styles.item} onClick={manageSubscription} disabled={loadingPortal}>
                   {loadingPortal ? 'Loading...' : 'Manage Subscription'}

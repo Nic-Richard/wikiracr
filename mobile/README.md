@@ -4,8 +4,9 @@ The Android app packages the existing React client with Capacitor. It opens the
 website's Play menu with its original wording and animated/parallax background.
 The menu fits the app viewport; information pages scroll within the phone safe area.
 Android gravity-sensor input drives parallax relative to the phone's initial angle.
-It is smoothed, recalibrated on resume/rotation and stopped when motion is disabled
-or the app is paused. Sensor data stays on the device. Reports use a top-layer
+The canvas smooths sensor input between frames; tappable controls stay still and
+touch dragging never drives parallax. Input is recalibrated on resume/rotation and
+stopped when motion is disabled or the app is paused. Sensor data stays on the device. Reports use a top-layer
 dialog so menu transforms cannot clip the form or keyboard-sized viewport.
 Race controls adapt to a phone; race validation and rankings remain
 server-authoritative. Articles run in a sandboxed iframe without access to the native bridge.
@@ -33,7 +34,7 @@ Override `CHROME_PATH`, `ADB_PATH` or `ANDROID_SERIAL` as needed.
 
 - APK: `android/app/build/outputs/apk/debug/app-debug.apk`
 - Signed AAB: `android/app/build/outputs/bundle/release/app-release.aab`
-- Package: `com.wikiracr.app`; version `1.0`, code `2`, target SDK 36.
+- Package: `com.wikiracr.app`; version `1.0`, code `3`, target SDK 36.
 
 ## Signing and sign-in
 
@@ -62,7 +63,7 @@ See `../docs/PLAY_BILLING.md` for server setup and required purchase checks.
 - Check a real solo race, daily challenge and multiplayer room, including reconnect
   after backgrounding and Android Back. Fixture checks do not replace live checks.
 - Complete the Play listing, declarations, reviewer access and testing setup.
-  Build 1 is uploaded as an internal draft. Replace it with build 2 for the final
+  Build 1 is uploaded as an internal draft. Replace it with build 3 for the final
   UI and wording changes, then validate the internal release before rollout.
 - Increment `versionCode` for each subsequent Play upload. No EAS build is needed.
 - After public launch, set `data-play-url` on the app-prompt script in

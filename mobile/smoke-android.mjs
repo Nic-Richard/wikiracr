@@ -35,6 +35,16 @@ try {
   });
   await page.goto('https://localhost/');
   await page.waitForSelector('[data-menu-panel="main"]');
+  await page.evaluate(() => {
+    window.__tiltSamples = 0;
+    window.addEventListener('wikiracr-tilt', ({ detail }) => { window.__tilt = detail; window.__tiltSamples++; });
+  });
+  await page.waitForFunction(() => window.__tiltSamples > 3);
+  const initialTilt = await page.evaluate(() => window.__tilt.x);
+  run('emu', 'sensor', 'set', 'acceleration', '3:7:6');
+  await page.waitForFunction(initial => Math.abs(window.__tilt.x - initial) > 0.05, {}, initialTilt);
+  assert.equal(await page.$eval('[data-native-menu] [class*="content"]', element => element.style.transform), '', 'Real native tilt must leave the controls still');
+  run('emu', 'sensor', 'set', 'acceleration', '0:9.81:0');
   await page.$$eval('button', buttons => buttons.find(button => button.textContent === 'PLAY SOLO').click());
   await page.waitForSelector('[data-menu-panel="solo"]');
   await page.$$eval('button', buttons => buttons.find(button => button.textContent.startsWith('START ')).click());

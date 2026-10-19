@@ -14,13 +14,21 @@ The app displays Google's localized price, not a hard-coded dollar amount.
 ## Current rollout
 
 The Publisher API verifies the internal draft containing version 1.0/code 1.
-`wikiracr_pro` and its `monthly` base plan are created and read back in DRAFT,
+`wikiracr_pro` and its `monthly` base plan are created and read back ACTIVE,
 with the approved US$5.99 price and Google's converted prices in 174 regions.
 No future-region automatic availability, trial or special offer is configured.
-Signed build 2 includes the final UI and wording changes and passes bundle and
-signature validation. Its upload remains pending. Notification resources are
-created and read back; receiver deployment, Console topic linkage/test, product
-activation and actual license-tester purchases remain pending.
+Signed build 3 includes the latest UI and wording changes. Its upload remains
+pending. Notification resources are created and read back. Server-only credentials,
+stable encryption key and test-billing settings are staged and parsed successfully;
+`PLAY_LIVE_APPROVED=false`. Existing environment values and databases are preserved.
+One protected pre-Play environment backup is kept at
+`/root/deploy-backups/wikiracr-play.env` for rollback.
+
+Nic approves the billing deployment. GitHub run
+https://github.com/Nic-Richard/wikiracr/actions/runs/39337321152 targets the already
+pushed, CI-passing commit `84b32e7` and completes successfully after Production
+approval. Console topic linkage/test and actual license-tester purchases remain
+pending. Website legal publication accompanies the approved client rollout.
 Do not publish a production release or enable live purchases just to test this code.
 
 The existing shared Publisher identity is documented in

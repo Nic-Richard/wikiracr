@@ -85,7 +85,15 @@ try {
   assert.equal(await page.$('.native-tabs'), null);
   await page.waitForFunction(() => !!window.__nativeEvents['WikiRacrMotion:tilt']);
   await page.evaluate(() => window.__nativeEvents['WikiRacrMotion:tilt']({ x: 0.4, y: 0.2 }));
-  await page.waitForFunction(() => document.querySelector('[data-native-menu] [class*="content"]').style.transform.includes('rotateX(-1.2deg)'));
+  assert.equal(await page.$eval('[data-native-menu] [class*="content"]', element => element.style.transform), '', 'Tilt must not move tappable controls');
+  assert(await page.$eval('canvas', element => element.width <= innerWidth + 64), 'Background must not render a desktop-sized canvas');
+  await page.evaluate(() => window.dispatchEvent(new PointerEvent('pointermove', { pointerType: 'touch', clientX: 5, clientY: 5 })));
+  assert.equal(await page.$eval('[data-native-menu] [class*="content"]', element => element.style.transform), '', 'Touch dragging must not tilt the menu');
+  await page.$eval('a[href="/upgrade"]', element => element.scrollIntoView({ block: 'center' }));
+  await page.click('a[href="/upgrade"]');
+  await page.waitForFunction(() => location.pathname === '/upgrade');
+  await page.goto(origin);
+  await page.waitForSelector('[data-menu-panel="main"]');
   await page.click('button[title="Disable motion effects"]');
   assert.equal(await page.$eval('[data-native-menu] [class*="content"]', element => element.style.transform), '');
   await page.click('button[title="Enable motion effects"]');
@@ -105,6 +113,14 @@ try {
   if (process.env.SMOKE_SCREENSHOT) await page.screenshot({ path: process.env.SMOKE_SCREENSHOT });
   assert(geometry.height > 350 && geometry.width <= 390, `Article should occupy most of the phone: ${JSON.stringify(geometry)}`);
   assert(await page.$eval('[class*="hudGoalChip"]', element => element.getBoundingClientRect().height <= 55), 'Long titles must not grow the game header');
+  assert(await page.$eval('[class*="hudGoalChip"]', element => element.getBoundingClientRect().width <= 201), 'Goal box must leave room for controls');
+  assert(await page.$eval('[data-native-hud]', element => [...element.querySelectorAll('button, [class*="hudGoalChip"]')].every(child => child.getBoundingClientRect().right <= innerWidth)), 'Game controls must stay inside the viewport');
+  assert.equal(await page.$eval('button[aria-label="Reset article zoom"]', element => element.textContent), '100%', 'First article must start at readable zoom');
+  for (const viewport of [{ width: 320, height: 740 }, { width: 844, height: 390 }]) {
+    await page.setViewport({ ...viewport, isMobile: true, hasTouch: true });
+    assert(await page.$eval('[data-native-hud]', element => [...element.querySelectorAll('button, [class*="hudGoalChip"]')].every(child => { const box = child.getBoundingClientRect(); return box.left >= 0 && box.right <= innerWidth; })), 'Game controls must fit small and rotated screens');
+  }
+  await page.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
   await page.evaluate(() => window.__nativeEvents['App:backButton']({ canGoBack: true }));
   await page.waitForSelector('[role="alertdialog"]');
   await page.click('[role="alertdialog"] button');
@@ -138,6 +154,11 @@ try {
   await page.waitForFunction(() => !document.querySelector('button[class*="playAction"]')?.disabled);
   await page.click('a[href="/menu"]');
   await page.waitForSelector('[data-menu-panel="main"]');
+  await page.$eval('a[href="/pro"]', element => element.scrollIntoView({ block: 'center' }));
+  await page.click('a[href="/pro"]');
+  await page.waitForFunction(() => location.pathname === '/pro');
+  await page.goBack();
+  await page.waitForSelector('[data-menu-panel="main"]');
   const profileRequest = page.waitForRequest(request => new URL(request.url()).pathname === '/api/me/profile' && request.headers().authorization === 'Bearer fixture-token');
   await page.click('a[href="/account"]');
   await page.waitForFunction(() => document.body.innerText.includes('Racer'));
@@ -148,6 +169,9 @@ try {
   await page.goto(origin);
   await page.waitForSelector('[data-menu-panel="main"]');
   assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'Small-phone home must fit');
+  await page.$eval('a[href="/upgrade"]', element => element.scrollIntoView({ block: 'center' }));
+  await page.click('a[href="/upgrade"]');
+  await page.waitForFunction(() => location.pathname === '/upgrade');
   for (const route of ['/privacy', '/terms', '/how-to-play']) {
     await page.goto(origin + route);
     await page.waitForSelector('[data-route-scroll]');

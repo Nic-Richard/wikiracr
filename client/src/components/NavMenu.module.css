@@ -27,3 +27,5 @@
 .item:disabled { opacity: 0.5; cursor: default; }
 
 .rule { height: 1px; background: var(--bdr); margin: 6px 4px; }
+:global(.native-app) .burger { width: 44px; height: 44px; }
+:global(.native-app) .item { min-height: 44px; font-size: 14px; }
