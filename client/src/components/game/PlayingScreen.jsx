@@ -63,8 +63,8 @@ export default function PlayingScreen({
     : 0;
 
   return (
-    <div className={styles.gameroot}>
-      <div className={styles.hud}>
+    <div className={styles.gameroot} data-native-race>
+      <div className={styles.hud} data-native-hud>
         <div className={styles.hudLeft}>
           <button className={styles.navBtn} onClick={goBack} disabled={histIdx <= 0}>&#8592;</button>
           <button className={styles.navBtn} onClick={goForward} disabled={histIdx >= navHist.length - 1}>&#8594;</button>

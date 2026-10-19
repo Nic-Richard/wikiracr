@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Navigate, useNavigate, Link } from 'react-router-dom';
-import { useUser, useAuth } from '@clerk/clerk-react';
+import { useUser, useAuth } from '../lib/auth';
 import { connectSocket } from '../lib/socket';
 import NetworkBackground from '../components/NetworkBackground';
 import { useMotion } from '../lib/MotionContext';

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { SignInButton } from '@clerk/clerk-react';
+import { SignInButton } from '../../lib/auth';
 import styles from '../../pages/Game.module.css';
 
 export function ProRequiredScreen({ rounds }) {

@@ -1,7 +1,9 @@
+import { appFetch } from '../lib/platform';
 import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { SignedIn, SignedOut, SignInButton, useAuth, useClerk } from '@clerk/clerk-react';
+import { SignedIn, SignedOut, SignInButton, useAuth, useClerk } from '../lib/auth';
 import styles from './NavMenu.module.css';
+import { NATIVE_APP } from '../lib/platform';
 
 export default function NavMenu({ isPro }) {
   const [open, setOpen] = useState(false);
@@ -24,7 +26,7 @@ export default function NavMenu({ isPro }) {
     setLoadingPortal(true);
     try {
       const token = await getToken();
-      const res = await fetch('/api/stripe/create-portal-session', {
+      const res = await appFetch('/api/stripe/create-portal-session', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -48,12 +50,12 @@ export default function NavMenu({ isPro }) {
           <Link to="/account" className={styles.item} onClick={() => setOpen(false)}>Account</Link>
           <Link to="/leaderboard" className={styles.item} onClick={() => setOpen(false)}>Leaderboard</Link>
           <SignedIn>
-            {isPro
+            {!NATIVE_APP && (isPro
               ? <button className={styles.item} onClick={manageSubscription} disabled={loadingPortal}>
                   {loadingPortal ? 'Loading...' : 'Manage Subscription'}
                 </button>
               : <Link to="/upgrade" className={styles.item} onClick={() => setOpen(false)}>Upgrade to Pro</Link>
-            }
+            )}
             <div className={styles.rule} />
             <button className={styles.item} onClick={() => { setOpen(false); signOut(() => navigate('/')); }}>Sign Out</button>
           </SignedIn>

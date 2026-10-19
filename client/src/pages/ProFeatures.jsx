@@ -1,5 +1,5 @@
 import { Link, Navigate } from 'react-router-dom';
-import { useUser } from '@clerk/clerk-react';
+import { useUser } from '../lib/auth';
 import NetworkBackground from '../components/NetworkBackground';
 import NavMenu from '../components/NavMenu';
 import ReportButton from '../components/ReportButton';

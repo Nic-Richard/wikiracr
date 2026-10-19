@@ -1,4 +1,4 @@
-import { useUser } from '@clerk/clerk-react';
+import { useUser } from './auth';
 
 export function useIsPro() {
   const { user } = useUser();

@@ -1,5 +1,6 @@
+import { appFetch } from '../lib/platform';
 import { useState, useEffect, useRef } from 'react';
-import { useAuth } from '@clerk/clerk-react';
+import { useAuth } from '../lib/auth';
 import styles from './ReportButton.module.css';
 
 export default function ReportButton({ context = {}, openUp = false }) {
@@ -33,7 +34,7 @@ export default function ReportButton({ context = {}, openUp = false }) {
         const token = await getToken();
         headers.Authorization = `Bearer ${token}`;
       }
-      const res = await fetch('/api/report', {
+      const res = await appFetch('/api/report', {
         method: 'POST',
         headers,
         body: JSON.stringify({ type, message, context }),

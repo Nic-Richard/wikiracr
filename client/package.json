@@ -8,6 +8,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@capacitor/core": "8.5.2",
     "@clerk/clerk-react": "^5.61.10",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -16,6 +17,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.2.1",
+    "puppeteer-core": "23.11.1",
     "vite": "^5.1.0"
   }
 }

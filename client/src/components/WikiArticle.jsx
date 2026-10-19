@@ -1,3 +1,4 @@
+import { appFetch } from '../lib/platform';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import styles from './WikiArticle.module.css';
 
@@ -158,11 +159,16 @@ function buildDoc(html) {
 }
 
 async function fetchHtml(title) {
-  const res = await fetch(`https://en.wikipedia.org/api/rest_v1/page/html/${encodeURIComponent(title)}`);
+  const res = await appFetch(`https://en.wikipedia.org/api/rest_v1/page/html/${encodeURIComponent(title)}`);
   if (!res.ok) throw new Error(`Wikipedia returned ${res.status}`);
   const text = await res.text();
   const doc  = new DOMParser().parseFromString(text, 'text/html');
-  doc.querySelectorAll(STRIP).forEach(el => el.remove());
+  doc.querySelectorAll(`${STRIP}, script, iframe, object, embed, form`).forEach(el => el.remove());
+  doc.body.querySelectorAll('*').forEach(element => {
+    for (const attribute of [...element.attributes]) {
+      if (/^on/i.test(attribute.name) || /^(?:javascript|vbscript):/i.test(attribute.value.trim())) element.removeAttribute(attribute.name);
+    }
+  });
   return doc.body.innerHTML;
 }
 
@@ -215,7 +221,8 @@ export default function WikiArticle({ title, goalTitle, onLinkClick }) {
   }, [title]);
 
   useEffect(() => {
-    const handler = ({ data }) => {
+    const handler = ({ data, source }) => {
+      if (source !== iframeRef.current?.contentWindow) return;
       if (data?.type === 'find-results') { setMatches({ count: data.count, index: data.index }); return; }
       if (data?.type !== 'wiki-nav') return;
       const href = data.href;
@@ -343,6 +350,7 @@ export default function WikiArticle({ title, goalTitle, onLinkClick }) {
         src={blobUrl}
         className={styles.frame}
         title={displayTitle}
+        sandbox="allow-scripts"
         onLoad={applyArticleZoom}
       />
       <div className={styles.attribution} aria-label="Wikipedia attribution">

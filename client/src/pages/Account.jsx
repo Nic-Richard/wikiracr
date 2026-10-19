@@ -1,6 +1,7 @@
+import { appFetch } from '../lib/platform';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { SignInButton, useAuth, useClerk, useUser } from '@clerk/clerk-react';
+import { SignInButton, useAuth, useClerk, useUser } from '../lib/auth';
 import NetworkBackground from '../components/NetworkBackground';
 import { useMotion } from '../lib/MotionContext';
 import { useGamePreferences } from '../lib/GamePreferencesContext';
@@ -8,6 +9,7 @@ import { formatTime as fmt } from '../lib/format';
 import { RANK_CLASS } from '../lib/rankDisplay';
 import { useIsPro } from '../lib/useIsPro';
 import styles from './Account.module.css';
+import { NATIVE_APP } from '../lib/platform';
 
 const PRO_BENEFITS = [
   'Create Custom Lobbies',
@@ -55,7 +57,7 @@ export default function Account() {
     let stopped = false;
     (async () => {
       const token = await getToken();
-      const response = await fetch('/api/account-deletion', { headers: { Authorization: `Bearer ${token}` } });
+      const response = await appFetch('/api/account-deletion', { headers: { Authorization: `Bearer ${token}` } });
       if (response.ok) {
         const data = await response.json();
         if (!stopped && data.state !== 'none') setDeletionState(data.state);
@@ -70,7 +72,7 @@ export default function Account() {
     setError(null);
     try {
       const token = await getToken();
-      const response = await fetch('/api/account-deletion', {
+      const response = await appFetch('/api/account-deletion', {
         method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ confirmation }),
       });
@@ -88,7 +90,7 @@ export default function Account() {
     (async () => {
       try {
         const token = await getToken();
-        const res = await fetch('/api/me/profile', { headers: { Authorization: `Bearer ${token}` } });
+        const res = await appFetch('/api/me/profile', { headers: { Authorization: `Bearer ${token}` } });
         const data = await res.json();
         if (!cancelled) setProfile(data);
       } catch {
@@ -124,7 +126,7 @@ export default function Account() {
     setError(null);
     try {
       const token = await getToken();
-      const res = await fetch('/api/stripe/create-checkout', {
+      const res = await appFetch('/api/stripe/create-checkout', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       });
@@ -152,7 +154,7 @@ export default function Account() {
     setError(null);
     try {
       const token = await getToken();
-      const res = await fetch('/api/stripe/create-portal-session', {
+      const res = await appFetch('/api/stripe/create-portal-session', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -231,14 +233,14 @@ export default function Account() {
             <div className={styles.planRow}>
               <div>
                 <h2>{isPro ? 'WikiRacr Pro' : isSignedIn ? 'Free account' : 'Guest'}</h2>
-                <p className={styles.muted}>{isPro ? 'Your Pro features are active.' : 'Upgrade when you want the full game.'}</p>
+                <p className={styles.muted}>{isPro ? 'Your Pro features are active.' : NATIVE_APP ? 'Free play and your existing account are available here.' : 'Upgrade when you want the full game.'}</p>
               </div>
               <span className={`${styles.tierPill} ${isPro ? styles.proPill : ''}`}>{tier}</span>
             </div>
             <ul className={styles.benefits}>
               {PRO_BENEFITS.map(item => <li key={item}>{item}</li>)}
             </ul>
-            {isPro ? (
+            {NATIVE_APP ? <p className={styles.muted}>Subscription changes are managed on the WikiRacr website.</p> : isPro ? (
               <button className={styles.goldBtn} onClick={manageSubscription} disabled={billingLoading}>{billingLoading ? 'Opening...' : 'Manage Subscription'}</button>
             ) : (
               <button className={styles.goldBtn} onClick={handleUpgrade} disabled={upgradeLoading}>{upgradeLoading ? 'Opening...' : isSignedIn ? 'Upgrade to Pro' : 'Sign in to upgrade'}</button>

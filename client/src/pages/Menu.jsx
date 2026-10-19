@@ -1,6 +1,7 @@
+import { appFetch } from '../lib/platform';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { SignedIn, SignedOut, SignInButton, useUser, useAuth } from '@clerk/clerk-react';
+import { SignedIn, SignedOut, SignInButton, useUser, useAuth } from '../lib/auth';
 import { connectSocket } from '../lib/socket';
 import { useMotion } from '../lib/MotionContext';
 import { useMouseTilt } from '../lib/useMouseTilt';
@@ -12,6 +13,7 @@ import ReportButton from '../components/ReportButton';
 import NetworkBackground from '../components/NetworkBackground';
 import GhostCards from '../components/GhostCards';
 import styles from './Menu.module.css';
+import { NATIVE_APP } from '../lib/platform';
 
 const WIKI_SEQS = [
   [
@@ -62,7 +64,10 @@ export default function Menu() {
   const { getToken } = useAuth();
   const socketRef = useRef(null);
 
-  const [ctx, setCtx]           = useState('main');
+  const [ctx, setCtx]           = useState(() => {
+    const panel = new URLSearchParams(window.location.search).get('panel');
+    return NATIVE_APP && ['solo', 'multi', 'ranked', 'join', 'how'].includes(panel) ? panel : 'main';
+  });
   const [diff, setDiff]         = useState('easy');
   const [roomCode, setRoomCode] = useState('');
   const [joinCode, setJoinCode] = useState('');
@@ -106,7 +111,7 @@ export default function Menu() {
     setCtx(panel);
     if (panel === 'ranked' && user) {
       getToken().then(token =>
-        fetch('/api/me/elo', { headers: { Authorization: `Bearer ${token}` } })
+        appFetch('/api/me/elo', { headers: { Authorization: `Bearer ${token}` } })
           .then(r => r.json())
           .then(setMyElo)
           .catch(() => setMyElo(null))
@@ -165,7 +170,7 @@ export default function Menu() {
   } : {};
 
   return (
-    <div className={styles.root}>
+    <div className={styles.root} data-native-menu={NATIVE_APP || undefined}>
       <NetworkBackground parallax={motionEnabled} />
       <div className={styles.vignette} />
 

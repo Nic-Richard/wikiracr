@@ -1,6 +1,7 @@
+import { appFetch } from '../lib/platform';
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth, useClerk } from '@clerk/clerk-react';
+import { useAuth, useClerk } from '../lib/auth';
 import NetworkBackground from '../components/NetworkBackground';
 import { useMotion } from '../lib/MotionContext';
 import styles from './Upgrade.module.css';
@@ -41,7 +42,7 @@ export default function Upgrade() {
     setError(null);
     try {
       const token = await getToken();
-      const res   = await fetch('/api/stripe/create-checkout', {
+      const res   = await appFetch('/api/stripe/create-checkout', {
         method:  'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       });

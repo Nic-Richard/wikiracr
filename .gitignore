@@ -39,3 +39,15 @@ tools/pair-generator/higherlower_articles.json
 Thumbs.db
 __pycache__/
 *.py[cod]
+
+# Android generated outputs and signing material
+mobile/www/
+mobile/android/.gradle/
+mobile/android/build/
+mobile/android/app/build/
+mobile/android/capacitor-cordova-android-plugins/
+mobile/android/app/src/main/assets/
+mobile/android/local.properties
+*.jks
+*.keystore
+*.p12

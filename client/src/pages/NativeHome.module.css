@@ -1,0 +1,43 @@
+.page { max-width: 680px; margin: 0 auto; padding: 22px 22px 24px; }
+.header { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.header :global(.wordmark) { font-size: 28px; }
+.player { display: flex; align-items: center; gap: 8px; min-height: 44px; max-width: 48%; font-size: 12px; color: var(--muted); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.player img { width: 26px; height: 26px; object-fit: cover; border-radius: 50%; }
+.playerDot { width: 8px; height: 8px; border: 1px solid var(--accent); border-radius: 50%; }
+.intro { padding: 38px 0 28px; }
+.eyebrow { font-size: 10px; letter-spacing: .18em; color: var(--accent); font-weight: 700; margin-bottom: 14px; }
+.intro h1 { font-family: var(--display); font-size: clamp(42px, 11vw, 66px); font-weight: 700; line-height: 1.08; letter-spacing: -.02em; }
+.intro > p:last-of-type { font-size: 14px; color: var(--muted); line-height: 1.65; margin-top: 18px; }
+.example { display: flex; align-items: center; gap: 12px; margin-top: 24px; font-size: 12px; color: var(--text); }
+.example > span:not(.arrow) { border: 1px solid var(--bdr2); background: var(--sur); border-radius: 5px; padding: 10px 12px; }
+.example .destination { border-color: #6e581e; color: #e3bd65; }
+.arrow { color: var(--faint); font-size: 22px; }
+.solo { padding: 20px; background: var(--sur); border: 1px solid var(--bdr2); border-radius: 12px; }
+.sectionHead { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 18px; }
+.sectionHead h2 { font-size: 15px; font-weight: 600; }
+.sectionHead > span { color: var(--faint); font-size: 9px; font-weight: 700; letter-spacing: .16em; }
+.difficulty { display: flex; align-items: center; justify-content: space-between; color: var(--muted); font-size: 12px; gap: 12px; }
+.difficulty select { padding: 10px 30px 10px 12px; min-height: 44px; background: var(--bg); color: var(--text); border: 1px solid var(--bdr2); border-radius: 6px; font: inherit; }
+.primary { margin-top: 16px; min-height: 52px; padding: 0 16px; display: flex; align-items: center; justify-content: space-between; border-radius: 7px; background: var(--accent); color: var(--bg); font-size: 15px; font-weight: 700; }
+.primary > span { font-size: 23px; }
+.solo > p { margin-top: 12px; color: var(--faint); font-size: 10px; line-height: 1.6; }
+.modes { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; margin-top: 14px; }
+.mode { border: 1px solid var(--bdr2); border-radius: 12px; padding: 17px 14px; background: var(--sur); display: flex; flex-direction: column; min-height: 188px; }
+.number { color: var(--faint); font-family: var(--display); font-size: 15px; margin-bottom: 16px; }
+.mode h2 { font-size: 15px; line-height: 1.4; font-weight: 600; }
+.mode p { color: var(--faint); font-size: 11px; line-height: 1.6; margin-top: 8px; }
+.modeAction { margin-top: auto; padding-top: 18px; font-size: 10px; color: var(--accent); font-weight: 600; }
+.daily { background: linear-gradient(145deg, #222114, var(--sur)); border-color: #4b4327; }
+.daily .number, .daily .modeAction { color: #e3bd65; }
+.quickLinks { margin: 14px 0 26px; }
+.quickLinks a, .proModes a { display: flex; align-items: center; justify-content: space-between; padding: 16px 4px; border-bottom: 1px solid var(--bdr); font-size: 13px; min-height: 48px; }
+.quickLinks span, .proModes span { color: var(--faint); }
+.proModes { margin-bottom: 24px; }
+.proModes h2 { font-size: 15px; color: #e3bd65; }
+.signIn { border-left: 2px solid var(--accent); padding: 0 0 0 16px; display: flex; align-items: center; gap: 14px; margin: 26px 0; }
+.signIn h2 { font-size: 16px; margin-bottom: 7px; }
+.signIn p { color: var(--faint); font-size: 12px; line-height: 1.65; }
+.signIn button { flex-shrink: 0; color: var(--accent); background: none; border: 1px solid var(--bdr2); border-radius: 6px; min-height: 44px; padding: 10px 14px; font-size: 12px; }
+.footer { display: flex; gap: 22px; margin-top: 30px; color: var(--faint); font-size: 11px; }
+.footer a { min-height: 44px; display: flex; align-items: center; }
+@media (max-width: 350px) { .page { padding-left: 16px; padding-right: 16px; } .modes { gap: 8px; } .mode { padding: 14px 11px; } }

@@ -1,6 +1,7 @@
+import { appFetch } from '../lib/platform';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useUser, useAuth, SignInButton } from '@clerk/clerk-react';
+import { useUser, useAuth, SignInButton } from '../lib/auth';
 import NetworkBackground from '../components/NetworkBackground';
 import { useMotion } from '../lib/MotionContext';
 import { formatTime as fmt, normalizeTitle as nt } from '../lib/format';
@@ -28,8 +29,8 @@ export default function Profile() {
         const token = await getToken();
         const headers = { Authorization: `Bearer ${token}` };
         const [profileRes, historyRes] = await Promise.all([
-          fetch('/api/me/profile', { headers }),
-          fetch('/api/me/history', { headers }),
+          appFetch('/api/me/profile', { headers }),
+          appFetch('/api/me/history', { headers }),
         ]);
         setProfile(await profileRes.json());
         setHistory((await historyRes.json()).history || []);

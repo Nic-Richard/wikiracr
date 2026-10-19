@@ -1,6 +1,7 @@
+import { appFetch } from '../lib/platform';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { useUser, useAuth } from '@clerk/clerk-react';
+import { useUser, useAuth } from '../lib/auth';
 import NetworkBackground from '../components/NetworkBackground';
 import { useMotion } from '../lib/MotionContext';
 import { useIsPro } from '../lib/useIsPro';
@@ -21,7 +22,7 @@ function formatViews(n) {
 
 async function fetchSnapshot(title) {
   try {
-    const res = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`);
+    const res = await appFetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`);
     if (!res.ok) return null;
     const data = await res.json();
     return {
@@ -96,7 +97,7 @@ export default function HigherOrLower() {
   useEffect(() => {
     if (!isPro || !isSignedIn) return;
     getToken().then(token =>
-      fetch('/api/higherlower/best', { headers: { Authorization: `Bearer ${token}` } })
+      appFetch('/api/higherlower/best', { headers: { Authorization: `Bearer ${token}` } })
         .then(r => r.json())
         .then(d => setBest(prev => Math.max(prev, d.best || 0)))
         .catch(() => {})

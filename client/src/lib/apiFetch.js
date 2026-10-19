@@ -1,8 +1,9 @@
+import { appFetch } from './platform';
 // Normalize API failures before they reach the UI.
 export async function apiFetch(path, options) {
   let res;
   try {
-    res = await fetch(path, options);
+    res = await appFetch(path, options);
   } catch {
     throw new Error('Could not reach the server. Check your connection and try again.');
   }

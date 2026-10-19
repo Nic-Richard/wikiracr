@@ -1,3 +1,4 @@
+import { appFetch } from '../lib/platform';
 import { useState, useEffect, useRef } from 'react';
 import styles from './HintButton.module.css';
 
@@ -22,7 +23,7 @@ export default function HintButton({ title }) {
 
     setLoading(true);
     setError(null);
-    fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`)
+    appFetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`)
       .then(r => { if (!r.ok) throw new Error('not found'); return r.json(); })
       .then(data => {
         const text = data.extract || 'No summary available for this article.';

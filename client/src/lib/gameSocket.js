@@ -20,8 +20,9 @@ export async function connectMultiplayerRoom({
   };
   const socket = connectSocket(userObj, token);
   socketRef.current = socket;
+  socket.removeAllListeners();
 
-  socket.on('connect', () => setMySocketId(socket.id));
+  socket.on('connect', () => { setMySocketId(socket.id); joinRoom(); });
 
   socket.on('room-updated', state => {
     setRoomState(state);
@@ -138,6 +139,8 @@ export async function connectMultiplayerRoom({
     setPhase('kicked');
   });
 
+  function joinRoom() {
+  if (isCancelled()) return;
   socket.timeout(10000).emit('join-room', { code }, (err, response) => {
     if (err || !response?.ok) {
       const { error, message } = response || {};
@@ -174,4 +177,6 @@ export async function connectMultiplayerRoom({
       setPhase('reconnect-wait');
     }
   });
+  }
+  if (socket.connected) { setMySocketId(socket.id); joinRoom(); }
 }

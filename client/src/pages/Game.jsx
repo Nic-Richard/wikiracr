@@ -1,6 +1,7 @@
+import { appFetch, NATIVE_APP } from '../lib/platform';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
-import { useUser, useAuth } from '@clerk/clerk-react';
+import { useUser, useAuth } from '../lib/auth';
 import { fetchPairFromServer, startSpeedrun, nextSpeedrunPair, finishSpeedrun } from '../lib/pairApi';
 import { connectMultiplayerRoom } from '../lib/gameSocket';
 import RoundSkippedScreen from '../components/game/RoundSkippedScreen';
@@ -104,6 +105,7 @@ export default function Game() {
 
   useEffect(() => {
     if (isSolo) {
+      if (NATIVE_APP && !isLoaded) return;
       fetchPair();
       return () => clearInterval(timerRef.current);
     }
@@ -116,7 +118,7 @@ export default function Game() {
       clearInterval(timerRef.current);
       socketRef.current?.disconnect();
     };
-  }, [isSolo, isLoaded, user, isPro, getToken]);
+  }, [isSolo, isLoaded, user?.id, isPro, getToken]);
 
   function fetchPair(diff = difficulty) {
     setPhase('loading');
@@ -300,7 +302,7 @@ export default function Game() {
     if (!user) return;
     try {
       const token = await getToken();
-      await fetch('/api/me/game', {
+      await appFetch('/api/me/game', {
         method:  'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body:    JSON.stringify({
@@ -357,7 +359,7 @@ export default function Game() {
   async function submitSpeedrunScore(rounds) {
     try {
       const token = await getToken();
-      await fetch('/api/leaderboard/speedrun', {
+      await appFetch('/api/leaderboard/speedrun', {
         method:  'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body:    JSON.stringify({

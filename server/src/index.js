@@ -8,6 +8,7 @@ const { initDb } = require('./db');
 const { setupSocketHandlers } = require('./socket/handlers');
 const apiRouter = require('./routes/api');
 const log = require('./lib/logger');
+const { allowedOrigins } = require('./lib/allowedOrigins');
 
 process.on('unhandledRejection', (reason) => {
   log.error('[process] unhandled rejection:', reason);
@@ -17,10 +18,7 @@ process.on('uncaughtException', (err) => {
 });
 
 const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
-const CLIENT_URL_MATCH = CLIENT_URL.match(/^(https?:\/\/)(www\.)?(.+)$/);
-const ALLOWED_ORIGINS = CLIENT_URL_MATCH
-  ? [`${CLIENT_URL_MATCH[1]}${CLIENT_URL_MATCH[3]}`, `${CLIENT_URL_MATCH[1]}www.${CLIENT_URL_MATCH[3]}`]
-  : [CLIENT_URL];
+const ALLOWED_ORIGINS = allowedOrigins(CLIENT_URL);
 
 function checkOrigin(origin, callback) {
   if (!origin || ALLOWED_ORIGINS.includes(origin)) return callback(null, true);

@@ -1,3 +1,4 @@
+import { appFetch } from '../lib/platform';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { DIFFICULTIES } from '../lib/difficulties';
@@ -17,7 +18,7 @@ export default function Leaderboard() {
     if (tab === 'elo') url = '/api/leaderboard/elo';
     if (tab === 'speedrun') url = `/api/leaderboard/speedrun?difficulty=${speedrunDiff}`;
 
-    fetch(url)
+    appFetch(url)
       .then(r => r.json())
       .then(d => setBoard(d.leaderboard || []))
       .catch(() => setBoard([]))

@@ -1,0 +1,40 @@
+.native-app { color-scheme: dark; --safe-top: env(safe-area-inset-top, 0px); --safe-bottom: env(safe-area-inset-bottom, 0px); }
+.native-app body { padding-top: var(--safe-top); padding-left: env(safe-area-inset-left,0px); padding-right: env(safe-area-inset-right,0px); }
+.native-app #root { min-height: calc(100dvh - var(--safe-top)); height: auto; }
+.native-content:not(:has([data-native-race])) { padding-bottom: calc(80px + var(--safe-bottom)); }
+.native-app button, .native-app a, .native-app select { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+.native-app button:focus-visible, .native-app a:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+.native-tabs { position: fixed; bottom: 0; left: 0; right: 0; background: #10161f; border-top: 1px solid var(--bdr2); display: grid; grid-template-columns: repeat(4,1fr); padding: 8px max(8px,env(safe-area-inset-right)) calc(8px + var(--safe-bottom)) max(8px,env(safe-area-inset-left)); z-index: 550; }
+.native-tabs a { min-height: 48px; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 5px; color: var(--faint); font-size: 10px; }
+.native-tabs svg { width: 21px; height: 21px; }
+.native-tabs a.active { color: var(--accent); }
+.native-dialog-shade { position: fixed; inset: 0; z-index: 2000; display: grid; place-items: center; background: #000b; padding: 24px; }
+.native-dialog { max-width: 380px; width: 100%; background: var(--sur); border: 1px solid var(--bdr2); border-radius: 16px; padding: 24px; }
+.native-dialog h2 { font-size: 20px; margin-bottom: 12px; }
+.native-dialog p { color: var(--muted); font-size: 14px; line-height: 1.6; }
+.native-dialog > div { display: flex; flex-direction: column; gap: 10px; margin-top: 22px; }
+.native-dialog button { min-height: 48px; background: var(--sur2); color: var(--text); border: 1px solid var(--bdr2); border-radius: 7px; font-size: 14px; }
+.native-dialog .danger { color: var(--red); }
+.native-offline, .native-auth-error { position: fixed; top: var(--safe-top); left: 8px; right: 8px; z-index: 1800; background: #312b18; border: 1px solid #6e581e; border-radius: 8px; color: #f1d38d; padding: 12px 16px; font-size: 12px; line-height: 1.5; }
+.native-auth-error { display: flex; align-items: center; gap: 12px; }
+.native-auth-error button { flex-shrink: 0; margin-left: auto; background: none; color: inherit; border: 0; width: 36px; height: 36px; font-size: 22px; }
+.native-info { min-height: calc(100dvh - var(--safe-top)); max-width: 560px; margin: auto; padding: 52px 24px 110px; }
+.native-info h1 { font-family: var(--display); font-size: 42px; margin: 24px 0 16px; }
+.native-info p { color: var(--muted); font-size: 14px; line-height: 1.75; margin: 12px 0; }
+.native-info button { display: block; min-height: 48px; margin-top: 22px; background: var(--accent); color: var(--bg); border: 0; border-radius: 7px; padding: 12px 24px; font-weight: 700; }
+.native-app [data-native-menu] { min-height: calc(100dvh - var(--safe-top)); height: auto; padding-bottom: calc(78px + var(--safe-bottom)); }
+.native-app [data-native-menu] [class*="ghost"], .native-app [data-native-menu] canvas { display: none; }
+.native-app [data-native-menu] [class*="center"] { padding: 100px 22px 36px; min-height: calc(100dvh - 80px); }
+.native-app [data-native-menu] [class*="content"] { width: 100%; max-width: 440px; transform: none !important; }
+.native-app [data-native-menu] [class*="topBar"] { position: absolute; top: 0; left: 0; right: 0; padding: 22px; }
+.native-app [data-native-race] { height: calc(100dvh - var(--safe-top)); padding-bottom: var(--safe-bottom); }
+.native-app [data-native-hud] { padding-left: 12px; padding-right: 12px; }
+.native-app [data-native-race] [class*="hudInfoRow"] { width: 100%; display: flex; gap: 6px; }
+.native-app [data-native-race] [class*="hudStartChip"] { display: none; }
+.native-app [data-native-race] [class*="hudGoalChip"] { max-width: none; flex: 1; padding: 8px 10px; font-size: 12px; }
+.native-app [data-native-race] [class*="hudOptimal"], .native-app [data-native-race] [class*="hudArrow"] { display: none; }
+.native-app [data-native-race] [class*="bottomBar"] { min-height: 48px; height: auto; padding: 7px 12px; }
+.native-app [data-native-race] [class*="breadcrumb"] { display: none; }
+.native-app [data-native-race] [class*="giveUpBtn"] { min-height: 38px; margin-left: auto; }
+.native-app [data-native-race] [class*="cogBtn"] { min-width: 40px; min-height: 40px; }
+.native-app [data-native-race] iframe { min-height: 0; }

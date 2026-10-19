@@ -1,6 +1,7 @@
+import { appFetch } from '../lib/platform';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { useUser, useAuth, SignInButton } from '@clerk/clerk-react';
+import { useUser, useAuth, SignInButton } from '../lib/auth';
 import WikiArticle from '../components/WikiArticle';
 import NetworkBackground from '../components/NetworkBackground';
 import HintButton from '../components/HintButton';
@@ -165,7 +166,7 @@ export default function Daily() {
     setLoadError(null);
     try {
       const token  = await getToken();
-      const statusRes = await fetch('/api/daily/status', { headers: { Authorization: `Bearer ${token}` } });
+      const statusRes = await appFetch('/api/daily/status', { headers: { Authorization: `Bearer ${token}` } });
       const status = await statusRes.json();
       setStreak(status.streak || 0);
       setDate(status.date);
@@ -213,7 +214,7 @@ export default function Daily() {
   }
 
   function fetchLeaderboard(forDate) {
-    fetch(`/api/leaderboard/daily?date=${forDate}`)
+    appFetch(`/api/leaderboard/daily?date=${forDate}`)
       .then(r => r.json())
       .then(({ leaderboard: lb }) => setLeaderboard(lb || []))
       .catch(() => {});
@@ -229,7 +230,7 @@ export default function Daily() {
     }
     try {
       const token = await getToken();
-      await fetch('/api/daily/progress', {
+      await appFetch('/api/daily/progress', {
         method:  'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body:    JSON.stringify({ navHist: newHist, histIdx: newIdx, clicks: newClicks, elapsedMs }),
@@ -338,7 +339,7 @@ export default function Daily() {
     try {
       await syncDailyClock(false);
       const token    = await getToken();
-      const res = await fetch('/api/leaderboard/daily', {
+      const res = await appFetch('/api/leaderboard/daily', {
         method:  'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body:    JSON.stringify({ date, clicks: finalClicks, path }),
@@ -355,7 +356,7 @@ export default function Daily() {
       } else {
         throw new Error(data.error || 'submit failed');
       }
-      await fetch('/api/me/game', {
+      await appFetch('/api/me/game', {
         method:  'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body:    JSON.stringify({
@@ -455,8 +456,8 @@ export default function Daily() {
   if (phase === 'playing' && pair) {
     const breadcrumb = navHist.slice(Math.max(0, histIdx - 3), histIdx + 1);
     return (
-      <div className={styles.gameroot}>
-        <div className={styles.hud}>
+      <div className={styles.gameroot} data-native-race>
+        <div className={styles.hud} data-native-hud>
           <div className={styles.hudLeft}>
             <button className={styles.navBtn} onClick={goBack}    disabled={histIdx <= 0}>&#8592;</button>
             <button className={styles.navBtn} onClick={goForward} disabled={histIdx >= navHist.length - 1}>&#8594;</button>

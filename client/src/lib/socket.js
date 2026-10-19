@@ -1,10 +1,14 @@
 import { io } from 'socket.io-client';
+import { NATIVE_APP, API_ORIGIN } from './platform';
 
-const SERVER_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001';
+const SERVER_URL = NATIVE_APP ? API_ORIGIN : (import.meta.env.VITE_SERVER_URL || window.location.origin);
 const GUEST_USER = { userId: null, username: 'Guest', isPro: false };
 
 let socket = null;
 let authKey = '';
+let tokenGetter = null;
+export function setSocketTokenGetter(getter) { tokenGetter = getter; }
+export function resumeSocket() { if (socket && !socket.connected) socket.connect(); }
 
 function makeAuth(user = null, token = null) {
   return { user: user || GUEST_USER, token: token || null };
@@ -32,7 +36,10 @@ export function connectSocket(user, token = null) {
     s.disconnect();
   }
 
-  s.auth = auth;
+  s.auth = NATIVE_APP ? callback => {
+    if (!auth.user?.userId) return callback(auth);
+    Promise.resolve(tokenGetter ? tokenGetter() : token).then(fresh => callback({ ...auth, token: fresh })).catch(() => callback({ ...auth, token: null }));
+  } : auth;
   authKey = nextKey;
   if (!s.connected) s.connect();
   return s;
