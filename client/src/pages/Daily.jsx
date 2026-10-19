@@ -1,3 +1,4 @@
+import Arrow from '../components/Arrow';
 import { appFetch } from '../lib/platform';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
@@ -397,7 +398,7 @@ export default function Daily() {
       <div className={styles.root}>
         <div className={styles.gateWrap}>
           <div className={styles.headerRow}>
-            <Link to="/menu" className={styles.gateBack}>&#8592; Back</Link>
+            <Link to="/menu" className={styles.gateBack}><Arrow left /> Back</Link>
           </div>
           <p className={styles.gateTitle}>Could not load today's challenge</p>
           <p className={styles.gateDesc}>{loadError}</p>
@@ -417,12 +418,12 @@ export default function Daily() {
         <div className={styles.introWrap}>
           <div className={styles.headerRow}>
             <p className={styles.tag}>{date}</p>
-            <Link to="/menu" className={styles.gateBack}>&#8592; Back</Link>
+            <Link to="/menu" className={styles.gateBack}><Arrow left /> Back</Link>
           </div>
           <h1 className={styles.introTitle}>Today's Challenge</h1>
           <div className={styles.introChips}>
             <span className={`${styles.chip} ${styles.chipStart}`}>{nt(pair.startTitle)}</span>
-            <span className={styles.chipArrow}>&#8594;</span>
+            <span className={styles.chipArrow}><Arrow /></span>
             <span className={`${styles.chip} ${styles.chipEnd}`}>{nt(pair.endTitle)}</span>
           </div>
           <p className={styles.introSub}>
@@ -459,14 +460,14 @@ export default function Daily() {
       <div className={styles.gameroot} data-native-race>
         <div className={styles.hud} data-native-hud>
           <div className={styles.hudLeft}>
-            <button className={styles.navBtn} onClick={goBack}    disabled={histIdx <= 0}>&#8592;</button>
-            <button className={styles.navBtn} onClick={goForward} disabled={histIdx >= navHist.length - 1}>&#8594;</button>
+            <button className={styles.navBtn} onClick={goBack} aria-label="Previous article"    disabled={histIdx <= 0}><Arrow left /></button>
+            <button className={styles.navBtn} onClick={goForward} aria-label="Next article" disabled={histIdx >= navHist.length - 1}><Arrow /></button>
             <span className={styles.hudArticle}>{nt(currentArticle)}</span>
           </div>
           <div className={styles.hudCenter}>
             <span className={styles.hudTag}>DAILY</span>
             <span className={styles.hudStartChip}>{nt(pair.startTitle)}</span>
-            <span className={styles.hudArrow}>&#8594;</span>
+            <span className={styles.hudArrow}><Arrow /></span>
             <span className={styles.hudGoalChip}>{nt(pair.endTitle)}</span>
             <span className={styles.hudOptimal}>{pair.pathLength} optimal</span>
             <HintButton title={pair.endTitle} />

@@ -1,7 +1,13 @@
 # WikiRacr Android
 
-The Android app packages the existing React client with Capacitor. Its home screen,
-navigation and race controls adapt to a phone; race validation and rankings remain
+The Android app packages the existing React client with Capacitor. It opens the
+website's Play menu with its original wording and animated/parallax background.
+The menu fits the app viewport; information pages scroll within the phone safe area.
+Android gravity-sensor input drives parallax relative to the phone's initial angle.
+It is smoothed, recalibrated on resume/rotation and stopped when motion is disabled
+or the app is paused. Sensor data stays on the device. Reports use a top-layer
+dialog so menu transforms cannot clip the form or keyboard-sized viewport.
+Race controls adapt to a phone; race validation and rankings remain
 server-authoritative. Articles run in a sandboxed iframe without access to the native bridge.
 
 ## Local builds
@@ -27,7 +33,7 @@ Override `CHROME_PATH`, `ADB_PATH` or `ANDROID_SERIAL` as needed.
 
 - APK: `android/app/build/outputs/apk/debug/app-debug.apk`
 - Signed AAB: `android/app/build/outputs/bundle/release/app-release.aab`
-- Package: `com.wikiracr.app`; initial version `1.0`, code `1`, target SDK 36.
+- Package: `com.wikiracr.app`; version `1.0`, code `2`, target SDK 36.
 
 ## Signing and sign-in
 
@@ -41,18 +47,25 @@ the Windows credential file alone is not portable.
 Native sign-in uses Clerk's Android SDK and hosted authentication. The production
 callback `clerk://com.wikiracr.app.callback` is registered in Clerk. Sessions stay
 with the SDK; the article iframe cannot read them. Web authentication is unchanged.
-Existing Pro entitlements work, but Android exposes no Stripe checkout or portal.
+Existing Pro entitlements work. Android uses Google Play for new subscriptions,
+restore and subscription management; it exposes no Stripe checkout or portal.
+See `../docs/PLAY_BILLING.md` for server setup and required purchase checks.
 
 ## Before distributing
 
-- Deploy the server's exact `https://localhost` origin allowance for REST and
-  Socket.IO through an approved GitHub deployment. The current production server
-  does not yet include this change. Do not upload local environment files or databases.
+- The server's exact `https://localhost` origin allowance is deployed and verified
+  for REST and Socket.IO through GitHub run 39301095334. Future API changes use the
+  manual GitHub workflow. Do not upload local environment files or databases.
 - Complete Google sign-in, sign-out and account deletion on a physical phone.
   Hosted sign-in reaches the correct domain in the emulator, but its Cloudflare
   human check prevents completing that flow there.
 - Check a real solo race, daily challenge and multiplayer room, including reconnect
   after backgrounding and Android Back. Fixture checks do not replace live checks.
 - Complete the Play listing, declarations, reviewer access and testing setup.
-  Upload the first bundle manually, then validate the internal release before rollout.
+  Build 1 is uploaded as an internal draft. Replace it with build 2 for the final
+  UI and wording changes, then validate the internal release before rollout.
 - Increment `versionCode` for each subsequent Play upload. No EAS build is needed.
+- After public launch, set `data-play-url` on the app-prompt script in
+  `client/index.html` to `https://play.google.com/store/apps/details?id=com.wikiracr.app`.
+  Until then it stays blank. The prompt targets Android browsers only, excludes
+  native/standalone apps and remembers dismissal for seven days.

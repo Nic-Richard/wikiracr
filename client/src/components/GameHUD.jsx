@@ -1,3 +1,4 @@
+import Arrow from './Arrow';
 import { useState, useEffect } from 'react';
 import styles from './GameHUD.module.css';
 
@@ -18,9 +19,9 @@ export default function GameHUD({ startTitle, endTitle, currentArticle, path, cl
     <div className={styles.hud}>
       <div className={styles.left}>
         <span className={styles.start}>{startTitle}</span>
-        <span className={styles.sep}>&#8594;</span>
+        <span className={styles.sep}><Arrow /></span>
         <span className={styles.current}>{currentArticle}</span>
-        <span className={styles.sep}>&#8594;</span>
+        <span className={styles.sep}><Arrow /></span>
         <span className={styles.goal}>{endTitle}</span>
       </div>
 

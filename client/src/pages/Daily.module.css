@@ -148,3 +148,4 @@
   .resButtons { width: 100%; flex-direction: column; gap: 10px; }
   .shareRow { justify-content: center; }
 }
+:global(.native-app) .chip { white-space: normal; overflow-wrap: anywhere; line-height: 1.4; font-size: 15px; text-align: center; }

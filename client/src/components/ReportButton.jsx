@@ -1,5 +1,7 @@
 import { appFetch } from '../lib/platform';
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
+import { NATIVE_APP } from '../lib/platform';
 import { useAuth } from '../lib/auth';
 import styles from './ReportButton.module.css';
 
@@ -10,9 +12,16 @@ export default function ReportButton({ context = {}, openUp = false }) {
   const [message, setMessage] = useState('');
   const [state, setState]   = useState('idle');
   const boxRef = useRef(null);
+  const dialogRef = useRef(null);
 
   useEffect(() => {
     if (!open) return;
+    if (NATIVE_APP) {
+      dialogRef.current?.showModal();
+      const back = () => setOpen(false);
+      window.addEventListener('native-report-back', back);
+      return () => window.removeEventListener('native-report-back', back);
+    }
     function onClick(e) {
       if (boxRef.current && !boxRef.current.contains(e.target)) setOpen(false);
     }
@@ -48,24 +57,13 @@ export default function ReportButton({ context = {}, openUp = false }) {
     }
   }
 
-  return (
-    <div className={styles.wrap} ref={boxRef}>
-      <button
-        className={styles.toggle}
-        onClick={toggle}
-        title="Report a problem"
-        aria-label="Report a problem"
-      >
-        <span className={styles.badge}>!</span>
-      </button>
-
-      {open && (
-        <div className={`${styles.panel} ${openUp ? styles.panelUp : ''}`}>
+  const panel = (
+        <div className={`${styles.panel} ${NATIVE_APP ? styles.nativePanel : openUp ? styles.panelUp : ''}`}>
           {state === 'sent' ? (
             <p className={styles.thanks}>Thanks, got it.</p>
           ) : (
             <>
-              <p className={styles.label}>REPORT A PROBLEM</p>
+              <div className={styles.heading}><p className={styles.label}>REPORT A PROBLEM</p>{NATIVE_APP && <button className={styles.close} onClick={() => setOpen(false)} aria-label="Close report">&#215;</button>}</div>
               <div className={styles.typeRow}>
                 {context.pairId && (
                   <button className={`${styles.typeBtn} ${type === 'pair' ? styles.typeBtnSel : ''}`} onClick={() => setType('pair')}>Bad pair</button>
@@ -80,6 +78,7 @@ export default function ReportButton({ context = {}, openUp = false }) {
                 onChange={e => setMessage(e.target.value)}
                 maxLength={2000}
                 rows={3}
+                aria-label="Describe the problem"
               />
               {state === 'error' && <p className={styles.error}>Could not send. Try again?</p>}
               <button className={styles.submit} onClick={submit} disabled={state === 'sending' || !message.trim()}>
@@ -88,7 +87,13 @@ export default function ReportButton({ context = {}, openUp = false }) {
             </>
           )}
         </div>
-      )}
+  );
+  return (
+    <div className={styles.wrap} ref={boxRef}>
+      <button className={styles.toggle} onClick={toggle} title="Report a problem" aria-label="Report a problem" aria-expanded={open}>
+        <span className={styles.badge}>!</span>
+      </button>
+      {open && (NATIVE_APP ? createPortal(<dialog ref={dialogRef} className={styles.nativeDialog} data-native-report aria-label="Report a problem" onCancel={() => setOpen(false)} onClick={event => { if (event.target === event.currentTarget) setOpen(false); }}>{panel}</dialog>, document.body) : panel)}
     </div>
   );
 }

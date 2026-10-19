@@ -1,4 +1,6 @@
 .wrap { position: relative; display: inline-flex; }
+.heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.close { color: var(--muted); background: var(--sur); border: 1px solid var(--bdr2); border-radius: 6px; width: 44px; height: 44px; font-size: 24px; }
 
 .toggle {
   background: var(--sur);
@@ -13,6 +15,17 @@
   transition: border-color 0.15s;
   flex-shrink: 0;
 }
+
+.nativeDialog { position: fixed; inset: calc(16px + var(--safe-top, 0px)) 16px calc(16px + var(--safe-bottom, 0px)); margin: auto; width: min(440px, calc(100vw - 32px)); max-height: calc(100dvh - var(--safe-top, 0px) - var(--safe-bottom, 0px) - 32px); padding: 0; border: 1px solid var(--bdr2); border-radius: 12px; background: var(--bg); color: var(--text); overflow-y: auto; }
+.nativeDialog::backdrop { background: #000a; }
+.panel.nativePanel { position: static; width: 100%; padding: 20px; border: 0; border-radius: 0; box-shadow: none; }
+.nativePanel .label { font-size: 13px; margin: 0; }
+.nativePanel .heading { margin-bottom: 18px; }
+.nativePanel .typeBtn { min-height: 44px; font-size: 14px; border-radius: 6px; }
+.nativePanel .textarea { min-height: 140px; padding: 12px; font-size: 16px; line-height: 1.5; border-radius: 6px; }
+.nativePanel .submit { min-height: 48px; font-size: 15px; border-radius: 6px; }
+.nativePanel .thanks, .nativePanel .error { font-size: 15px; line-height: 1.5; }
+:global(.native-app) .toggle { width: 44px; height: 44px; border-radius: 6px; }
 .toggle:hover { border-color: var(--red); }
 
 .badge {

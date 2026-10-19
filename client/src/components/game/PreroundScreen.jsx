@@ -1,3 +1,4 @@
+import Arrow from '../Arrow';
 import NetworkBackground from '../NetworkBackground';
 import { normalizeTitle as nt } from '../../lib/format';
 import styles from '../../pages/Game.module.css';
@@ -30,13 +31,13 @@ export default function PreroundScreen({
           )}
           {Array.from({ length: hiddenCount }).map((_, i) => chipReveal >= i + 2 && (
             <span key={i} className={styles.chiprow}>
-              <span className={styles.chipArrow}>&#8594;</span>
+              <span className={styles.chipArrow}><Arrow /></span>
               <span className={`${styles.chip} ${styles.chipMid} ${styles.chipIn}`}>???</span>
             </span>
           ))}
           {chipReveal >= 2 + hiddenCount && (
             <span className={styles.chiprow}>
-              <span className={styles.chipArrow}>&#8594;</span>
+              <span className={styles.chipArrow}><Arrow /></span>
               <span className={`${styles.chip} ${styles.chipEnd} ${styles.chipIn}`}>
                 {nt(pair.endTitle)}
               </span>

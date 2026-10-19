@@ -22,8 +22,6 @@ import HowToPlay from './pages/HowToPlay';
 import WikiRace from './pages/WikiRace';
 import NotFound from './pages/NotFound';
 import { NATIVE_APP } from './lib/platform';
-import NativeHome from './pages/NativeHome';
-import NativePro from './pages/NativePro';
 import NativeShell from './components/NativeShell';
 
 
@@ -166,15 +164,15 @@ export default function App() {
         <ScrollToTop />
         <div className={NATIVE_APP ? 'native-content' : undefined}>
         <Routes>
-          <Route path="/"                element={NATIVE_APP ? <NativeHome /> : <Home />} />
+          <Route path="/"                element={NATIVE_APP ? <Menu /> : <Home />} />
           <Route path="/menu"            element={<Menu />} />
           <Route path="/game"            element={<Game />} />
           <Route path="/room/:code"      element={<Game />} />
           <Route path="/leaderboard"     element={<Leaderboard />} />
           <Route path="/wiki-race"       element={<WikiRace />} />
           <Route path="/how-to-play"     element={<HowToPlay />} />
-          <Route path="/upgrade"         element={NATIVE_APP ? <NativePro /> : <Upgrade />} />
-          <Route path="/upgrade/success" element={NATIVE_APP ? <NativePro /> : <UpgradeSuccess />} />
+          <Route path="/upgrade"         element={<Upgrade />} />
+          <Route path="/upgrade/success" element={NATIVE_APP ? <Upgrade /> : <UpgradeSuccess />} />
           <Route path="/higher-or-lower" element={<HigherOrLower />} />
           <Route path="/custom-lobby"    element={<CustomLobby />} />
           <Route path="/speedrun"        element={<Speedrun />} />

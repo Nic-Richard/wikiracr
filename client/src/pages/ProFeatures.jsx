@@ -1,3 +1,4 @@
+import Arrow from '../components/Arrow';
 import { Link, Navigate } from 'react-router-dom';
 import { useUser } from '../lib/auth';
 import NetworkBackground from '../components/NetworkBackground';
@@ -69,7 +70,7 @@ export default function ProFeatures() {
         <div className={styles.center}>
           <div className={styles.content} style={contentStyle}>
             <div className={styles.headerRow}>
-              <Link to="/menu" className={styles.back}>&#8592; Back</Link>
+              <Link to="/menu" className={styles.back}><Arrow left /> Back</Link>
               <div className={styles.proTag}>PRO</div>
             </div>
             <p className={styles.tagline}>Exclusive modes for subscribers.</p>

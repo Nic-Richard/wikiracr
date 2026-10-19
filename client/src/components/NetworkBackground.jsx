@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { NATIVE_APP } from '../lib/platform';
 
 export default function NetworkBackground({ n = 80, conn = 200, parallax = true }) {
   const canvasRef   = useRef(null);
@@ -15,8 +16,10 @@ export default function NetworkBackground({ n = 80, conn = 200, parallax = true 
     let raf;
 
     function resize() {
-      canvas.width  = window.innerWidth;
+      canvas.width  = NATIVE_APP ? Math.max(window.innerWidth, 1100) : window.innerWidth;
       canvas.height = window.innerHeight;
+      canvas.style.width = `${canvas.width}px`;
+      canvas.style.height = `${canvas.height}px`;
     }
 
     function spawn() {
@@ -54,11 +57,11 @@ export default function NetworkBackground({ n = 80, conn = 200, parallax = true 
 
     function dx(node) {
       const mx = parallaxRef.current ? mouseRef.current.x : 0;
-      return node.x + mx * node.depth * 22;
+      return node.x + mx * node.depth * (NATIVE_APP ? 90 : 22);
     }
     function dy(node) {
       const my = parallaxRef.current ? mouseRef.current.y : 0;
-      return node.y + my * node.depth * 22;
+      return node.y + my * node.depth * (NATIVE_APP ? 90 : 22);
     }
 
     function frame(t) {
@@ -123,20 +126,23 @@ export default function NetworkBackground({ n = 80, conn = 200, parallax = true 
     resize(); spawn();
     raf = requestAnimationFrame(frame);
     window.addEventListener('resize',    onResize, { passive: true });
-    window.addEventListener('mousemove', onMouse,  { passive: true });
+    window.addEventListener('pointermove', onMouse,  { passive: true });
+    const onTilt = ({ detail }) => { mouseRef.current = detail; };
+    window.addEventListener('wikiracr-tilt', onTilt);
 
     return () => {
       cancelAnimationFrame(raf);
       clearInterval(pulseTimer);
       window.removeEventListener('resize',    onResize);
-      window.removeEventListener('mousemove', onMouse);
+      window.removeEventListener('pointermove', onMouse);
+      window.removeEventListener('wikiracr-tilt', onTilt);
     };
   }, [n, conn]);
 
   return (
     <canvas
       ref={canvasRef}
-      style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0 }}
+      style={{ position: 'fixed', top: 0, left: '50%', transform: 'translateX(-50%)', pointerEvents: 'none', zIndex: 0 }}
     />
   );
 }

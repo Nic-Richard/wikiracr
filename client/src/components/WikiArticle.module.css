@@ -1,4 +1,8 @@
 .root   { position: relative; display: flex; flex-direction: column; width: 100%; height: 100%; }
+:global(.native-app) .banner { flex-wrap: wrap; padding: 10px 12px; gap: 8px; }
+:global(.native-app) .bannerGoal, :global(.native-app) .bannerLabel { display: none; }
+:global(.native-app) .toolsWrap { flex-shrink: 0; }
+:global(.native-app) .toolsWrap button { min-width: 40px; min-height: 40px; font-size: 16px; }
 
 .banner {
   flex-shrink: 0;

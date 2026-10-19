@@ -1,4 +1,6 @@
 /* Loading */
+:global(.native-app) .chip { white-space: normal; overflow-wrap: anywhere; line-height: 1.4; font-size: 15px; text-align: center; }
+:global(.native-app) .chiprow { min-width: 0; max-width: 100%; }
 .loading  { height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; background: var(--bg); }
 .loadingSub { font-size: 13px; color: var(--faint); letter-spacing: 0.04em; }
 .spinner  { width: 36px; height: 36px; border: 2px solid var(--bdr2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; }

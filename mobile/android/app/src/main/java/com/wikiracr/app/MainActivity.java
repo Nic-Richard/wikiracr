@@ -7,6 +7,8 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         registerPlugin(WikiRacrAuthPlugin.class);
+        registerPlugin(WikiRacrMotionPlugin.class);
+        registerPlugin(WikiRacrBillingPlugin.class);
         super.onCreate(savedInstanceState);
     }
 }

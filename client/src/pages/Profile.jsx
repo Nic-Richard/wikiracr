@@ -1,3 +1,4 @@
+import Arrow from '../components/Arrow';
 import { appFetch } from '../lib/platform';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
@@ -71,7 +72,7 @@ export default function Profile() {
       <div className={styles.wrap}>
         <div className={styles.header}>
           <Link to="/" className="wordmark"><span className="w">Wiki</span><span className="r">Racr</span></Link>
-          <Link to="/menu" className={styles.back}>&#8592; Back</Link>
+          <Link to="/menu" className={styles.back}><Arrow left /> Back</Link>
         </div>
 
         <div className={styles.identity}>
@@ -137,7 +138,7 @@ export default function Profile() {
             {history.map((h, i) => (
               <div key={i} className={styles.historyRow}>
                 <span className={styles.historyMode}>{h.mode}</span>
-                <span className={styles.historyPair}>{nt(h.start_title)} &#8594; {nt(h.end_title)}</span>
+                <span className={styles.historyPair}>{nt(h.start_title)} <Arrow /> {nt(h.end_title)}</span>
                 <span className={styles.historyClicks}>{h.clicks} clicks</span>
                 <span className={`${styles.historyScore} ${!h.completed ? styles.historyDnf : ''}`}>
                   {h.completed ? (h.mode === 'daily' ? 'Daily' : `${Number(h.score || 0).toLocaleString()} pts`) : 'DNF'}

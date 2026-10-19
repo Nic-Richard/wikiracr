@@ -18,9 +18,11 @@
   transition: color 0.15s, border-color 0.15s;
 }
 .btn:hover { color: var(--text); border-color: var(--muted); }
+.btn { display: inline-flex; align-items: center; gap: 7px; }
 
 @media (hover: none), (pointer: coarse), (max-width: 700px) {
   .btn {
     display: none;
   }
 }
+.btn.inline { position: static; display: inline-flex; min-height: 44px; font-size: 13px; border-radius: 6px; padding: 8px 10px; }

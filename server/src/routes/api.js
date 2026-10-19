@@ -326,6 +326,7 @@ router.post('/report', optionalAuth, reportLimit, (req, res) => {
 
 
 router.post('/stripe/create-checkout', requireAuth, async (req, res) => {
+  if (require('../db').getPlayStore()?.active(req.userId)) return res.status(409).json({ error: 'Your Google Play Pro subscription is already active.' });
   log.debug('[stripe] checkout requested by userId:', req.userId);
   try {
     const session = await stripe.checkout.sessions.create({
@@ -442,7 +443,7 @@ router.post('/stripe/webhook', async (req, res) => {
       await clerk.users.updateUser(clerkUserId, {
         publicMetadata: {
           ...user.publicMetadata,
-          isPro:                false,
+          isPro:                !!require('../db').getPlayStore()?.active(clerkUserId),
           stripeSubscriptionId: null,
         },
       });

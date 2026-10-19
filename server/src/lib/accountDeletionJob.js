@@ -9,6 +9,8 @@ function startAccountDeletion(io) {
   service = createAccountDeletion({
     store: db.getDeletionStore(), clerk: require('./clerk'),
     stripe: require('stripe')(process.env.STRIPE_SECRET_KEY), eraseAlerts: eraseAccountAlerts,
+    playReferences: userId => db.getPlayStore().references(userId),
+    cancelPlay: userId => require('./playService').getPlayBilling().cancelAccount(userId),
     deleteData: db.deleteAccountData, drain: id => !accountRequestsPending(id),
     disconnect: id => {
       require('../game/GameManager').eraseAccount(id, io);

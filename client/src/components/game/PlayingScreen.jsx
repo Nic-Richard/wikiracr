@@ -1,3 +1,4 @@
+import Arrow from '../Arrow';
 import WikiArticle from '../WikiArticle';
 import SettingsModal from '../SettingsModal';
 import HintButton from '../HintButton';
@@ -66,9 +67,9 @@ export default function PlayingScreen({
     <div className={styles.gameroot} data-native-race>
       <div className={styles.hud} data-native-hud>
         <div className={styles.hudLeft}>
-          <button className={styles.navBtn} onClick={goBack} disabled={histIdx <= 0}>&#8592;</button>
-          <button className={styles.navBtn} onClick={goForward} disabled={histIdx >= navHist.length - 1}>&#8594;</button>
-          <span className={styles.hudArticle}>{nt(currentArticle)}</span>
+          <button className={styles.navBtn} onClick={goBack} aria-label="Previous article" disabled={histIdx <= 0}><Arrow left /></button>
+          <button className={styles.navBtn} onClick={goForward} aria-label="Next article" disabled={histIdx >= navHist.length - 1}><Arrow /></button>
+          <span className={styles.hudArticle} title={nt(currentArticle)}>{nt(currentArticle)}</span>
         </div>
 
         <div className={styles.hudInfoRow}>
@@ -86,8 +87,8 @@ export default function PlayingScreen({
               <span className={styles.hudRoundBadge}>ROUND {mpRoundNum}/{mpMaxRounds}</span>
             )}
             <span className={styles.hudStartChip}>{nt(pair.startTitle)}</span>
-            <span className={styles.hudArrow}>&#8594;</span>
-            <span className={styles.hudGoalChip}>{nt(pair.endTitle)}</span>
+            <span className={styles.hudArrow}><Arrow /></span>
+            <span className={styles.hudGoalChip} title={nt(pair.endTitle)}>{nt(pair.endTitle)}</span>
             <span className={styles.hudOptimal}>{pair.pathLength} optimal</span>
             <HintButton title={pair.endTitle} />
             <ReportButton context={{

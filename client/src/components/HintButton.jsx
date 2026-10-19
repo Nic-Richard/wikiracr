@@ -56,6 +56,7 @@ export default function HintButton({ title }) {
       {open && (
         <div className={styles.popover}>
           <p className={styles.popoverLabel}>ABOUT THE DESTINATION</p>
+          <p className={styles.popoverTitle}>{title.replaceAll('_', ' ')}</p>
           {loading && <p className={styles.popoverText}>Loading...</p>}
           {error && <p className={styles.popoverText}>{error}</p>}
           {extract && <p className={styles.popoverText}>{extract}</p>}

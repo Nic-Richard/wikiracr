@@ -1,3 +1,4 @@
+import Arrow from '../components/Arrow';
 import { appFetch } from '../lib/platform';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -30,7 +31,7 @@ export default function Leaderboard() {
       <div className={styles.header}>
         <Link to="/" className="wordmark"><span className="w">Wiki</span><span className="r">Racr</span></Link>
         <h1 className={styles.title}>Leaderboards</h1>
-        <Link to="/menu" className={styles.back}>&#8592; Back</Link>
+        <Link to="/menu" className={styles.back}><Arrow left /> Back</Link>
       </div>
 
       <div className={styles.tabs}>

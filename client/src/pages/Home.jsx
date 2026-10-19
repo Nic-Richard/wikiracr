@@ -1,3 +1,4 @@
+import Arrow from '../components/Arrow';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import NetworkBackground from '../components/NetworkBackground';
@@ -62,11 +63,11 @@ export default function Home() {
             <span className={`${styles.chip} ${styles.chipStart}`}>{pair.start}</span>
             {Array.from({ length: pair.clicks - 1 }).map((_, i) => (
               <span key={i}>
-                <span className={styles.arrow}>&#8594;</span>
+                <span className={styles.arrow}><Arrow /></span>
                 <span className={`${styles.chip} ${styles.chipMid}`}>???</span>
               </span>
             ))}
-            <span className={styles.arrow}>&#8594;</span>
+            <span className={styles.arrow}><Arrow /></span>
             <span className={`${styles.chip} ${styles.chipEnd}`}>{pair.end}</span>
           </div>
           <p className={styles.pairNote}>

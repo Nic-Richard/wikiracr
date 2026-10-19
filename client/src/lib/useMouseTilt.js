@@ -10,8 +10,10 @@ export function useMouseTilt() {
         y: (e.clientY / window.innerHeight - 0.5) * -5,
       });
     };
-    window.addEventListener('mousemove', onMouse, { passive: true });
-    return () => window.removeEventListener('mousemove', onMouse);
+    window.addEventListener('pointermove', onMouse, { passive: true });
+    const onTilt = ({ detail }) => setTilt({ x: detail.x * 5, y: detail.y * -5 });
+    window.addEventListener('wikiracr-tilt', onTilt);
+    return () => { window.removeEventListener('pointermove', onMouse); window.removeEventListener('wikiracr-tilt', onTilt); };
   }, []);
 
   return tilt;

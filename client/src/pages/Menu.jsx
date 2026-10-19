@@ -1,3 +1,4 @@
+import Arrow from '../components/Arrow';
 import { appFetch } from '../lib/platform';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -9,6 +10,7 @@ import { useIsPro } from '../lib/useIsPro';
 import { DIFFICULTIES } from '../lib/difficulties';
 import { RANK_CLASS } from '../lib/rankDisplay';
 import NavMenu from '../components/NavMenu';
+import MotionToggle from '../components/MotionToggle';
 import ReportButton from '../components/ReportButton';
 import NetworkBackground from '../components/NetworkBackground';
 import GhostCards from '../components/GhostCards';
@@ -139,6 +141,16 @@ export default function Menu() {
   }
 
   useEffect(() => {
+    if (!NATIVE_APP) return;
+    const back = () => {
+      if (searching) cancelSearch();
+      else setCtx(ctx === 'multi-create' ? 'multi' : 'main');
+    };
+    window.addEventListener('native-menu-back', back);
+    return () => window.removeEventListener('native-menu-back', back);
+  }, [ctx, searching]);
+
+  useEffect(() => {
     if (!searching) return;
     const id = setInterval(() => setSearchSeconds(s => s + 1), 1000);
     return () => clearInterval(id);
@@ -165,25 +177,27 @@ export default function Menu() {
   }
 
   const contentStyle = motionEnabled ? {
-    transform:  `perspective(1200px) rotateX(${tilt.y * 0.6}deg) rotateY(${tilt.x * 0.6}deg)`,
+    transform:  `perspective(1200px) rotateX(${tilt.y * (NATIVE_APP ? 1.2 : 0.6)}deg) rotateY(${tilt.x * (NATIVE_APP ? 1.2 : 0.6)}deg)`,
     transition: 'transform 0.18s ease-out',
   } : {};
 
   return (
-    <div className={styles.root} data-native-menu={NATIVE_APP || undefined}>
+    <div className={styles.root} data-native-menu={NATIVE_APP || undefined} data-menu-panel={ctx}>
       <NetworkBackground parallax={motionEnabled} />
       <div className={styles.vignette} />
 
       <div className={styles.reportCorner}>
         <ReportButton context={{ page: 'menu' }} openUp />
       </div>
+      {NATIVE_APP && <nav className="native-menu-links" aria-label="Legal"><Link to="/privacy">Privacy</Link><Link to="/terms">Terms</Link></nav>}
 
-      <GhostCards sequences={WIKI_SEQS} tilt={tilt} motionEnabled={motionEnabled} />
+      {!NATIVE_APP && <GhostCards sequences={WIKI_SEQS} tilt={tilt} motionEnabled={motionEnabled} />}
 
       <div className={styles.fg}>
         <div className={styles.topBar}>
           <Link to="/" className="wordmark"><span className="w">Wiki</span><span className="r">Racr</span></Link>
           <div className={styles.topRight}>
+            {NATIVE_APP && <MotionToggle inline />}
             <NavMenu isPro={isPro} />
           </div>
         </div>
@@ -225,7 +239,7 @@ export default function Menu() {
 
             {ctx === 'solo' && (
               <>
-                <button className={styles.back} onClick={() => go('main')}>&#8592; Back</button>
+                <button className={styles.back} onClick={() => go('main')}><Arrow left /> Back</button>
                 <div className={styles.subTitle}>PLAY SOLO</div>
                 <div className={styles.subHint}>Choose a difficulty and start immediately.</div>
                 <div className={styles.diffGrid}>
@@ -236,17 +250,17 @@ export default function Menu() {
                     </div>
                   ))}
                 </div>
-                <button className={styles.actionBtn} onClick={() => navigate(`/game?d=${diff}`)}>START &#8594;</button>
+                <button className={styles.actionBtn} onClick={() => navigate(`/game?d=${diff}`)}>START <Arrow /></button>
               </>
             )}
 
             {ctx === 'multi' && !searching && (
               <>
-                <button className={styles.back} onClick={() => go('main')}>&#8592; Back</button>
+                <button className={styles.back} onClick={() => go('main')}><Arrow left /> Back</button>
                 <div className={styles.subTitle}>MULTIPLAYER</div>
                 <div className={styles.subHint}>Quick Match pairs you instantly. Create a Room to invite friends.</div>
-                <button className={styles.actionBtn} onClick={handleQuickMatch}>QUICK MATCH &#8594;</button>
-                <button className={`${styles.actionBtn} ${styles.actionBtnSec}`} onClick={() => go('multi-create')}>CREATE A ROOM &#8594;</button>
+                <button className={styles.actionBtn} onClick={handleQuickMatch}>QUICK MATCH <Arrow /></button>
+                <button className={`${styles.actionBtn} ${styles.actionBtnSec}`} onClick={() => go('multi-create')}>CREATE A ROOM <Arrow /></button>
               </>
             )}
 
@@ -263,13 +277,13 @@ export default function Menu() {
                     </div>
                   </div>
                 )}
-                <button className={styles.back} style={{ marginTop: 20 }} onClick={cancelSearch}>&#8592; Cancel</button>
+                <button className={styles.back} style={{ marginTop: 20 }} onClick={cancelSearch}><Arrow left /> Cancel</button>
               </>
             )}
 
             {ctx === 'ranked' && !searching && (
               <>
-                <button className={styles.back} onClick={() => go('main')}>&#8592; Back</button>
+                <button className={styles.back} onClick={() => go('main')}><Arrow left /> Back</button>
                 <div className={styles.subTitle}>RANKED</div>
                 <div className={styles.subHint}>Matchmaking only. Affects your 1v1 rating.</div>
                 <SignedIn>
@@ -287,12 +301,12 @@ export default function Menu() {
                     </div>
                   )}
                   {rankedError && <p className={styles.rankedError}>{rankedError}</p>}
-                  <button className={styles.actionBtn} onClick={handleRankedMatch}>FIND RANKED MATCH &#8594;</button>
+                  <button className={styles.actionBtn} onClick={handleRankedMatch}>FIND RANKED MATCH <Arrow /></button>
                 </SignedIn>
                 <SignedOut>
                   <p className={styles.subHint}>You need an account to play Ranked.</p>
                   <SignInButton mode="modal" forceRedirectUrl="/menu">
-                    <button className={styles.actionBtn}>SIGN IN FREE &#8594;</button>
+                    <button className={styles.actionBtn}>SIGN IN FREE <Arrow /></button>
                   </SignInButton>
                 </SignedOut>
               </>
@@ -311,13 +325,13 @@ export default function Menu() {
                     </div>
                   </div>
                 )}
-                <button className={styles.back} style={{ marginTop: 20 }} onClick={cancelSearch}>&#8592; Cancel</button>
+                <button className={styles.back} style={{ marginTop: 20 }} onClick={cancelSearch}><Arrow left /> Cancel</button>
               </>
             )}
 
             {ctx === 'multi-create' && (
               <>
-                <button className={styles.back} onClick={() => go('multi')}>&#8592; Back</button>
+                <button className={styles.back} onClick={() => go('multi')}><Arrow left /> Back</button>
                 <div className={styles.subTitle}>CREATE A ROOM</div>
                 <div className={styles.subHint}>Choose difficulty. Share the room code with friends.</div>
                 <div className={styles.diffGrid}>
@@ -328,28 +342,28 @@ export default function Menu() {
                     </div>
                   ))}
                 </div>
-                <button className={styles.actionBtn} onClick={handleCreateRoom}>CREATE ROOM &#8594;</button>
+                <button className={styles.actionBtn} onClick={handleCreateRoom}>CREATE ROOM <Arrow /></button>
               </>
             )}
 
             {ctx === 'room' && (
               <>
-                <button className={styles.back} onClick={() => go('multi')}>&#8592; Back</button>
+                <button className={styles.back} onClick={() => go('multi')}><Arrow left /> Back</button>
                 <div className={styles.subTitle}>ROOM CREATED</div>
                 <div className={styles.subHint}>Share this code with your friends.</div>
                 <div className={styles.codeWrap}>
                   <div className={styles.codeLbl}>Room code</div>
                   <div className={styles.codeVal}>{roomCode}</div>
-                  <div className={styles.codeSub}>wikiracr.com &#8594; Join a Room</div>
+                  <div className={styles.codeSub}>wikiracr.com <Arrow /> Join a Room</div>
                   <button className={styles.copyBtn} onClick={handleCopy}>{copyLabel}</button>
                 </div>
-                <button className={styles.actionBtn} onClick={() => navigate(`/room/${roomCode}?d=${diff}`)}>GO TO ROOM &#8594;</button>
+                <button className={styles.actionBtn} onClick={() => navigate(`/room/${roomCode}?d=${diff}`)}>GO TO ROOM <Arrow /></button>
               </>
             )}
 
             {ctx === 'join' && (
               <>
-                <button className={styles.back} onClick={() => go('main')}>&#8592; Back</button>
+                <button className={styles.back} onClick={() => go('main')}><Arrow left /> Back</button>
                 <div className={styles.subTitle}>JOIN A ROOM</div>
                 <div className={styles.subHint}>Enter the room code you were given.</div>
                 <input
@@ -359,13 +373,13 @@ export default function Menu() {
                   onKeyDown={e => e.key === 'Enter' && handleJoin()}
                   maxLength={6} placeholder="XXXXXX" autoFocus
                 />
-                <button className={styles.actionBtn} onClick={handleJoin}>JOIN &#8594;</button>
+                <button className={styles.actionBtn} onClick={handleJoin}>JOIN <Arrow /></button>
               </>
             )}
 
             {ctx === 'how' && (
               <>
-                <button className={styles.back} onClick={() => go('main')}>&#8592; Back</button>
+                <button className={styles.back} onClick={() => go('main')}><Arrow left /> Back</button>
                 <div className={styles.subTitle}>HOW TO PLAY</div>
                 <div className={styles.howtoList}>
                   {[
@@ -391,7 +405,7 @@ export default function Menu() {
                     </div>
                   ))}
                 </div>
-                <Link to="/how-to-play" className={styles.actionBtn}>FULL GUIDE &#8594;</Link>
+                <Link to="/how-to-play" className={styles.actionBtn}>FULL GUIDE <Arrow /></Link>
               </>
             )}
 

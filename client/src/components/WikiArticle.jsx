@@ -1,3 +1,4 @@
+import Arrow from './Arrow';
 import { appFetch } from '../lib/platform';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import styles from './WikiArticle.module.css';
@@ -333,8 +334,8 @@ export default function WikiArticle({ title, goalTitle, onLinkClick }) {
                     {matches.count ? `${matches.index}/${matches.count}` : '0/0'}
                   </span>
                 )}
-                <button className={styles.findNav} onClick={goPrev} disabled={!matches.count} title="Previous match" aria-label="Previous match">&#8592;</button>
-                <button className={styles.findNav} onClick={goNext} disabled={!matches.count} title="Next match" aria-label="Next match">&#8594;</button>
+                <button className={styles.findNav} onClick={goPrev} disabled={!matches.count} title="Previous match" aria-label="Previous match"><Arrow left /></button>
+                <button className={styles.findNav} onClick={goNext} disabled={!matches.count} title="Next match" aria-label="Next match"><Arrow /></button>
                 <button className={styles.findClose} onClick={closeFind} title="Close" aria-label="Close find">&#10005;</button>
               </div>
             ) : (

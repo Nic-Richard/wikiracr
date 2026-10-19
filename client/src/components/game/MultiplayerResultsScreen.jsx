@@ -1,3 +1,4 @@
+import Arrow from '../Arrow';
 import { Link } from 'react-router-dom';
 import NetworkBackground from '../NetworkBackground';
 import StandingsList from './StandingsList';
@@ -79,7 +80,7 @@ export default function MultiplayerResultsScreen({
         )}
         {myPlayer?.elo && !myPlayer.elo.isPlacement && (
           <p className={`${styles.eloDelta} ${myPlayer.elo.delta >= 0 ? styles.eloGain : styles.eloLoss}`}>
-            {myPlayer.elo.delta >= 0 ? '+' : ''}{myPlayer.elo.delta} rating ({myPlayer.elo.before} &#8594; {myPlayer.elo.after})
+            {myPlayer.elo.delta >= 0 ? '+' : ''}{myPlayer.elo.delta} rating ({myPlayer.elo.before} <Arrow /> {myPlayer.elo.after})
           </p>
         )}
 

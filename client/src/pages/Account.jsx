@@ -240,7 +240,7 @@ export default function Account() {
             <ul className={styles.benefits}>
               {PRO_BENEFITS.map(item => <li key={item}>{item}</li>)}
             </ul>
-            {NATIVE_APP ? <p className={styles.muted}>Subscription changes are managed on the WikiRacr website.</p> : isPro ? (
+            {NATIVE_APP ? <Link className={styles.goldBtn} to="/upgrade">{isPro ? 'Pro and subscription options' : 'View Pro plans'}</Link> : isPro ? (
               <button className={styles.goldBtn} onClick={manageSubscription} disabled={billingLoading}>{billingLoading ? 'Opening...' : 'Manage Subscription'}</button>
             ) : (
               <button className={styles.goldBtn} onClick={handleUpgrade} disabled={upgradeLoading}>{upgradeLoading ? 'Opening...' : isSignedIn ? 'Upgrade to Pro' : 'Sign in to upgrade'}</button>
@@ -323,7 +323,7 @@ export default function Account() {
             <div className={styles.supportCard}>
               <h3>Need help?</h3>
               <p>For account, billing, report, or gameplay issues, email <a href="mailto:support@wikiracr.com">support@wikiracr.com</a>.</p>
-              <p>Pro billing and cancellations are handled through Stripe's billing portal when available.</p>
+              <p>Manage web subscriptions through Stripe and Android subscriptions through Google Play. Use Pro and subscription options for your account.</p>
               <div className={styles.supportLinks}>
                 <Link to="/terms" className={styles.secondaryBtn}>Terms</Link>
                 <Link to="/privacy" className={styles.secondaryBtn}>Privacy</Link>

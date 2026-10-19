@@ -1,13 +1,13 @@
 .native-app { color-scheme: dark; --safe-top: env(safe-area-inset-top, 0px); --safe-bottom: env(safe-area-inset-bottom, 0px); }
-.native-app body { padding-top: var(--safe-top); padding-left: env(safe-area-inset-left,0px); padding-right: env(safe-area-inset-right,0px); }
-.native-app #root { min-height: calc(100dvh - var(--safe-top)); height: auto; }
-.native-content:not(:has([data-native-race])) { padding-bottom: calc(80px + var(--safe-bottom)); }
+.native-app body { overflow: hidden; }
+.native-app #root { height: 100dvh; overflow: hidden; }
+.native-content { height: 100%; overflow-x: hidden; overflow-y: auto; padding: var(--safe-top) env(safe-area-inset-right,0px) var(--safe-bottom) env(safe-area-inset-left,0px); }
+.native-content:has([data-route-scroll]), .native-content:has([data-native-menu]) { overflow: hidden; }
+.native-menu-links { position: fixed; right: 22px; bottom: calc(12px + var(--safe-bottom)); display: flex; gap: 18px; color: var(--faint); font-size: 13px; z-index: 40; }
+.native-menu-links a { padding: 12px 0; }
+.native-app [data-route-scroll] { position: relative; inset: auto; height: 100%; min-height: 0; overscroll-behavior-y: contain; }
 .native-app button, .native-app a, .native-app select { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 .native-app button:focus-visible, .native-app a:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
-.native-tabs { position: fixed; bottom: 0; left: 0; right: 0; background: #10161f; border-top: 1px solid var(--bdr2); display: grid; grid-template-columns: repeat(4,1fr); padding: 8px max(8px,env(safe-area-inset-right)) calc(8px + var(--safe-bottom)) max(8px,env(safe-area-inset-left)); z-index: 550; }
-.native-tabs a { min-height: 48px; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 5px; color: var(--faint); font-size: 10px; }
-.native-tabs svg { width: 21px; height: 21px; }
-.native-tabs a.active { color: var(--accent); }
 .native-dialog-shade { position: fixed; inset: 0; z-index: 2000; display: grid; place-items: center; background: #000b; padding: 24px; }
 .native-dialog { max-width: 380px; width: 100%; background: var(--sur); border: 1px solid var(--bdr2); border-radius: 16px; padding: 24px; }
 .native-dialog h2 { font-size: 20px; margin-bottom: 12px; }
@@ -22,16 +22,38 @@
 .native-info h1 { font-family: var(--display); font-size: 42px; margin: 24px 0 16px; }
 .native-info p { color: var(--muted); font-size: 14px; line-height: 1.75; margin: 12px 0; }
 .native-info button { display: block; min-height: 48px; margin-top: 22px; background: var(--accent); color: var(--bg); border: 0; border-radius: 7px; padding: 12px 24px; font-weight: 700; }
-.native-app [data-native-menu] { min-height: calc(100dvh - var(--safe-top)); height: auto; padding-bottom: calc(78px + var(--safe-bottom)); }
-.native-app [data-native-menu] [class*="ghost"], .native-app [data-native-menu] canvas { display: none; }
-.native-app [data-native-menu] [class*="center"] { padding: 100px 22px 36px; min-height: calc(100dvh - 80px); }
-.native-app [data-native-menu] [class*="content"] { width: 100%; max-width: 440px; transform: none !important; }
-.native-app [data-native-menu] [class*="topBar"] { position: absolute; top: 0; left: 0; right: 0; padding: 22px; }
-.native-app [data-native-race] { height: calc(100dvh - var(--safe-top)); padding-bottom: var(--safe-bottom); }
+.native-app [data-native-menu] { min-height: 0; height: 100%; overflow: hidden; }
+.native-app [data-native-menu] [class*="fg"] { height: 100%; min-height: 0; }
+.native-app [data-native-menu] [class*="center"] { min-height: 0; overflow-y: auto; overscroll-behavior-y: contain; align-items: safe center; padding: 12px 24px 48px; }
+.native-app [data-native-menu] [class*="content"] { width: 100%; max-width: 440px; margin: auto; }
+.native-app [data-native-menu] [class*="topBar"] { padding: 18px 22px; }
+.native-app [data-native-menu] [class*="vignette"] { background: rgba(13,17,23,0.68); }
+.native-app [data-native-menu] [class*="reportCorner"] { bottom: calc(12px + var(--safe-bottom)); }
+.native-app [data-native-menu] [class*="opt"] { min-height: 44px; display: flex; align-items: center; justify-content: center; font-size: clamp(24px, 3.8dvh, 34px); padding: 5px 0; border: 0; border-radius: 0; background: none; }
+.native-app [data-native-menu] [class*="menu_"] { gap: 5px; }
+.native-app [data-native-menu] [class*="nudgeText"] { font-size: 14px; }
+.native-app [data-native-menu] [class*="nudgeBtn"] { font-size: 14px; min-height: 44px; border-radius: 6px; }
+.native-app [data-native-menu] [class*="back_"] { font-size: 14px; min-height: 44px; padding: 10px 16px; border: 1px solid var(--bdr2); border-radius: 6px; background: var(--sur); }
+.native-app [data-native-menu] [class*="subHint"], .native-app [data-native-menu] [class*="diffRange"] { font-size: 14px; line-height: 1.5; }
+.native-app [data-native-menu] [class*="diffGrid"] { grid-template-columns: repeat(2, 1fr); }
+.native-app [data-native-menu] [class*="diffTileWide"] { grid-column: 1 / -1; }
+.native-app [data-native-menu] [class*="nudge"] { margin-top: 12px; }
+.native-app [data-native-menu] [class*="nudgeText"] { margin-top: 0; }
+.native-app [data-native-menu] [class*="nudgeBtn"] { margin-top: 0; }
+.native-app [data-native-race] { height: calc(100dvh - var(--safe-top) - var(--safe-bottom)); padding-bottom: 0; }
 .native-app [data-native-hud] { padding-left: 12px; padding-right: 12px; }
 .native-app [data-native-race] [class*="hudInfoRow"] { width: 100%; display: flex; gap: 6px; }
 .native-app [data-native-race] [class*="hudStartChip"] { display: none; }
-.native-app [data-native-race] [class*="hudGoalChip"] { max-width: none; flex: 1; padding: 8px 10px; font-size: 12px; }
+.native-app [data-native-race] [class*="hudGoalChip"] { max-width: none; flex: 1; min-width: 0; padding: 6px 10px; font-size: 14px; line-height: 20px; white-space: normal; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; max-height: 54px; }
+.native-app [data-native-race] [class*="hudCenter"] { min-width: 0; width: 100%; flex: none; }
+.native-app [data-native-race] [class*="hudLeft"] { width: 100%; }
+.native-app [data-native-race] [class*="hudArticle"] { min-width: 0; flex: 1; font-size: 16px; white-space: normal; overflow-wrap: anywhere; line-height: 22px; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; max-height: 44px; }
+.native-app [data-native-race] [class*="hudClicks"] { font-size: 13px; }
+.native-app [data-native-race] [class*="hudTimer"] { font-size: 22px; }
+.native-app [data-native-race] [class*="hudRoundBadge"] { font-size: 12px; }
+.native-app [data-native-race] [class*="navBtn"] { width: 44px; height: 44px; font-size: 18px; }
+.native-app [data-native-race] [class*="hudInfoRow"] { flex-direction: column; align-items: stretch; overflow: visible; }
+.native-app [data-native-race] [class*="hudRight"] { margin-left: auto; }
 .native-app [data-native-race] [class*="hudOptimal"], .native-app [data-native-race] [class*="hudArrow"] { display: none; }
 .native-app [data-native-race] [class*="bottomBar"] { min-height: 48px; height: auto; padding: 7px 12px; }
 .native-app [data-native-race] [class*="breadcrumb"] { display: none; }

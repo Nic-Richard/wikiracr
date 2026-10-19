@@ -34,8 +34,10 @@ try {
     return request.abort();
   });
   await page.goto('https://localhost/');
-  await page.waitForSelector('a[href="/game?d=easy"]');
-  await page.click('a[href="/game?d=easy"]');
+  await page.waitForSelector('[data-menu-panel="main"]');
+  await page.$$eval('button', buttons => buttons.find(button => button.textContent === 'PLAY SOLO').click());
+  await page.waitForSelector('[data-menu-panel="solo"]');
+  await page.$$eval('button', buttons => buttons.find(button => button.textContent.startsWith('START ')).click());
   await page.waitForSelector('iframe', { timeout: 16000 });
   let frame = await (await page.$('iframe')).contentFrame();
   await frame.waitForSelector('a');
@@ -54,6 +56,6 @@ try {
   await frame.click('a');
   await page.waitForFunction(() => document.body.innerText.includes('YOUR PATH'), { timeout: 15000 });
   run('shell', 'input', 'keyevent', '4');
-  await page.waitForSelector('a[href="/game?d=easy"]');
+  await page.waitForSelector('[data-menu-panel="main"]');
   console.log('Android 15 passes: packaged launch, article race, hardware back confirmation, background/resume and result return. Requests stay on fixtures.');
 } finally { browser.disconnect(); }

@@ -53,6 +53,7 @@ app.use((req, res, next) => {
 });
 
 app.use('/api', apiRouter);
+app.use('/api/play', require('./routes/play'));
 
 app.use('/api', (req, res) => {
   res.status(404).json({ error: 'Not found' });
@@ -71,6 +72,7 @@ const PORT = process.env.PORT || 3001;
 
 initDb().then(() => {
   require('./lib/accountDeletionJob').startAccountDeletion(io);
+  require('./lib/playService').startPlayReconciliation();
   server.listen(PORT, () => {
     log.info(`Server running on port ${PORT}`);
   });

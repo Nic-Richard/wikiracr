@@ -16,6 +16,8 @@
   flex-shrink: 0;
 }
 .bulb:hover { border-color: var(--muted); color: var(--text); }
+:global(.native-app) .bulb { width: 44px; height: 44px; font-size: 18px; border-radius: 6px; }
+:global(.native-app) .popover { max-height: 65dvh; overflow-y: auto; }
 .bulbOn { border-color: var(--gold); color: var(--gold); }
 
 .popover {
@@ -34,6 +36,7 @@
 
 .popoverLabel { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; color: var(--gold); margin-bottom: 6px; }
 .popoverText  { font-size: 13px; color: var(--muted); line-height: 1.55; }
+.popoverTitle { font-size: 15px; font-weight: 600; color: var(--text); line-height: 1.4; overflow-wrap: anywhere; margin-bottom: 8px; }
 
 @media (max-width: 760px), (pointer: coarse) and (max-width: 940px) {
   .bulb { width: 27px; height: 27px; font-size: 13px; }

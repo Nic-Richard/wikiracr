@@ -41,7 +41,7 @@ export default function Privacy() {
                 <li>leaderboard and profile data, such as username, scores, times, clicks, streaks, ranked rating, and mode-specific results;</li>
                 <li>multiplayer room data, including room codes, room settings, player names, socket session activity, match state, and chat messages sent in rooms;</li>
                 <li>reports submitted through the report tool, including report type, message, context, account ID when signed in, and submission time;</li>
-                <li>subscription status and billing identifiers needed to connect a Clerk account to Stripe, such as Stripe customer and subscription IDs;</li>
+                <li>subscription status and billing identifiers needed to connect your account to Stripe or Google Play, including Stripe customer/subscription IDs, Google Play purchase tokens, order IDs, expiry and a pseudonymous account identifier;</li>
                 <li>basic technical data that may appear in server or hosting logs, such as IP address, request path, browser information, timestamps, errors, and security-related events.</li>
               </ul>
             </section>
@@ -54,12 +54,15 @@ export default function Privacy() {
             </section>
 
             <section className={styles.section}>
-              <h2>3. Payments and subscriptions through Stripe</h2>
+              <h2>3. Payments and subscriptions</h2>
               <p>
-                WikiRacr uses Stripe for checkout, subscription billing, the billing portal, and payment-related events. Stripe handles payment details such as card information. WikiRacr stores or receives only the subscription and customer identifiers needed to know whether your account has Pro access.
+                WikiRacr uses Stripe for web subscriptions and Google Play for subscriptions purchased in the Android app. These providers handle payment details such as card information. WikiRacr receives subscription status, billing identifiers and expiry information to verify Pro access. Google Play purchase tokens are encrypted on the server and tied to a pseudonymous identifier for your WikiRacr account.
               </p>
               <p>
-                Billing questions, cancellations, invoices, and refund workflows may be handled through Stripe or the Stripe billing portal where available.
+                Billing questions, cancellations, invoices and refunds are handled through the provider used for the purchase, or through support. Linked billing records are removed during account deletion, except for the limited cleanup receipts described below. Providers may retain their own payment records under their policies and legal obligations.
+              </p>
+              <p>
+                If motion effects are enabled, Android device tilt is processed locally to move the background. Motion readings are not sent to WikiRacr or retained as account data.
               </p>
             </section>
 
@@ -88,7 +91,7 @@ export default function Privacy() {
             <section className={styles.section}>
               <h2>6. Third-party providers</h2>
               <p>
-                WikiRacr depends on third-party providers to operate the service. This includes Clerk for authentication, Stripe for payments and billing, TraceTray for analytics, Discord for private staff notifications (report text, Pro payment events and error details, sent to a channel only WikiRacr's operator can read), Wikipedia and Wikimedia services for article content and link data, and hosting or server infrastructure for running the website and API.
+                WikiRacr depends on third-party providers to operate the service. This includes Clerk for authentication, Stripe and Google Play for payments and billing, TraceTray for analytics, Discord for private staff notifications (report text, Pro payment events and error details, sent to a channel only WikiRacr's operator can read), Wikipedia and Wikimedia services for article content and link data, and hosting or server infrastructure for running the website and API.
               </p>
               <p>
                 These providers may process information according to their own terms and privacy policies. WikiRacr does not control Wikipedia article content, Wikimedia availability, Clerk authentication systems, Stripe billing systems, or hosting provider logs.

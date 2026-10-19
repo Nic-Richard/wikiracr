@@ -1,3 +1,4 @@
+import Arrow from '../components/Arrow';
 import { useState, useRef, useEffect } from 'react';
 import { Navigate, useNavigate, Link } from 'react-router-dom';
 import { useUser, useAuth } from '../lib/auth';
@@ -119,7 +120,7 @@ export default function CustomLobby() {
       <div className={styles.wrap}>
         <div className={styles.headerRow}>
           <p className={styles.tag}>PRO &middot; CUSTOM LOBBY</p>
-          <Link to="/pro" className={styles.backLink}>&#8592; Back</Link>
+          <Link to="/pro" className={styles.backLink}><Arrow left /> Back</Link>
         </div>
         <h1 className={styles.title}>Build your match</h1>
         <p className={styles.subtitle}>Pick a mode, tune the rules, invite up to 32 players.</p>

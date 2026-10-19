@@ -26,7 +26,7 @@ async function userFromToken(token) {
   return {
     userId: user.id,
     username: displayNameFor(user),
-    isPro: !!user.publicMetadata?.isPro,
+    isPro: require('./playService').proAccess(user),
   };
 }
 

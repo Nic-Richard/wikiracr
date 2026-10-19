@@ -66,10 +66,10 @@ export default function Terms() {
                 WikiRacr Pro unlocks additional features such as creating Custom Lobbies, Speedrun mode, and Higher or Lower. The exact Pro features may change as WikiRacr develops.
               </p>
               <p>
-                Pro is a paid subscription. Payments, checkout, payment method handling, invoices, subscription management, cancellations, and billing portal access are handled through Stripe. WikiRacr does not store your full card details.
+                Pro is a paid subscription. Web subscriptions are billed through Stripe. Android subscriptions purchased in the app are billed through Google Play, renew automatically at the price shown before confirmation, and can be cancelled in Google Play. Prices may differ by platform, currency and region. WikiRacr does not store your full card details.
               </p>
               <p>
-                Cancellations and refund requests should be handled through Stripe or the billing portal where available. Access to Pro normally continues until the end of the paid billing period unless Stripe, your payment provider, or WikiRacr indicates otherwise.
+                Manage cancellations and refund requests through the provider used for the purchase, or contact support. Cancellation normally stops the next renewal and keeps access until the paid period ends; refunds, payment failures or account deletion may end access earlier. Deleting your WikiRacr account cancels linked subscriptions and does not automatically refund earlier payments. Your rights under applicable law are unaffected.
               </p>
             </section>
 

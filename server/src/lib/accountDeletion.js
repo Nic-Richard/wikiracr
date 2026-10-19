@@ -2,20 +2,26 @@ function summary(job) {
   return job ? { state: job.state, requested_at: job.requested_at, completed_at: job.completed_at } : { state: 'none' };
 }
 
-function createAccountDeletion({ store, clerk, stripe, eraseAlerts, deleteData, drain = () => true, disconnect = () => {} }) {
+function createAccountDeletion({ store, clerk, stripe, eraseAlerts, deleteData, playReferences = () => [], cancelPlay = async () => {}, drain = () => true, disconnect = () => {} }) {
   async function request(userId, confirmation) {
     if (confirmation !== 'DELETE') return { status: 400, body: { error: 'Type DELETE to confirm permanent account deletion.' } };
     const existing = store.get(userId);
     if (existing) return { status: 202, body: summary(existing) };
     const user = await clerk.users.getUser(userId);
     const references = [...new Set([userId, ...user.emailAddresses.map(email => email.emailAddress),
-      user.publicMetadata?.stripeCustomerId, user.publicMetadata?.stripeSubscriptionId].filter(Boolean))];
+      user.publicMetadata?.stripeCustomerId, user.publicMetadata?.stripeSubscriptionId, ...playReferences(userId)].filter(Boolean))];
     const job = store.request(userId, references);
     disconnect(userId);
     return { status: 202, body: summary(job) };
   }
   async function process(job, now = Date.now()) {
     if (!drain(job.user_id)) return;
+    const references = playReferences(job.user_id);
+    if (references.some(reference => !job.references.includes(reference))) {
+      job.references = [...new Set([...job.references, ...references])];
+      store.update(job.user_id, job);
+    }
+    await cancelPlay(job.user_id);
     // Recheck after in-flight checkouts settle, before removing the authentication identity.
     for await (const checkout of stripe.checkout.sessions.list({ status: 'open', limit: 100 })) {
       if (checkout.metadata?.clerkUserId === job.user_id) await stripe.checkout.sessions.expire(checkout.id);

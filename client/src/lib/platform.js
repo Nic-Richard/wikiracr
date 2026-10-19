@@ -5,6 +5,8 @@ export const API_ORIGIN = NATIVE_APP ? 'https://wikiracr.com' : '';
 export const NativeAuth = registerPlugin('WikiRacrAuth');
 export const NativeApp = registerPlugin('App');
 export const NativeBrowser = registerPlugin('Browser');
+export const NativeMotion = registerPlugin('WikiRacrMotion');
+export const NativeBilling = registerPlugin('WikiRacrBilling');
 
 export function apiUrl(value) {
   return NATIVE_APP && typeof value === 'string' && value.startsWith('/api/') ? API_ORIGIN + value : value;

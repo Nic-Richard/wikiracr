@@ -59,7 +59,7 @@ async function requirePro(req, res, next) {
   if (!req.userId) return res.status(401).json({ error: 'Unauthorised' });
   try {
     const user = await clerk.users.getUser(req.userId);
-    if (!user.publicMetadata?.isPro) {
+    if (!require('../lib/playService').proAccess(user)) {
       return res.status(403).json({ error: 'Pro subscription required' });
     }
     next();

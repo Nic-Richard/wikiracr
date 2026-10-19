@@ -41,6 +41,7 @@ test('daily timing persists independently of client progress and scores cannot b
         if (name === './lib/logger') return { debug() {}, info() {}, warn() {} };
         if (name === './game/dailyClock') return { advanceClock: (clock, active) => advanceClock(clock, active, now) };
         if (name === './lib/accountDeletionStore') return require('../src/lib/accountDeletionStore');
+        if (name === './lib/playStore') return require('../src/lib/playStore');
         return require(name);
       },
     });

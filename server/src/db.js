@@ -7,6 +7,7 @@ const { advanceClock } = require('./game/dailyClock');
 let db;
 let appDb;
 let deletionStore;
+let playStore;
 let higherLowerTitles = [];
 
 const TIER_NAMES = ['easy', 'medium', 'hard', 'expert'];
@@ -26,6 +27,7 @@ function initDb() {
   appDb.pragma('journal_mode = WAL');
   appDb.pragma('foreign_keys = ON');
   deletionStore = require('./lib/accountDeletionStore').createDeletionStore(appDb);
+  playStore = require('./lib/playStore').createPlayStore(appDb);
 
   appDb.exec(`
     CREATE TABLE IF NOT EXISTS game_history (
@@ -516,8 +518,10 @@ function saveReport(data) {
 }
 
 module.exports = {
+  getPlayStore: () => playStore,
   getDeletionStore: () => deletionStore,
   deleteAccountData: userId => appDb.transaction(() => {
+    playStore.erase(userId);
     for (const table of ['game_history', 'daily_progress', 'daily_clock', 'leaderboard_daily', 'user_elo', 'speedrun_scores', 'higherlower_scores', 'reports']) {
       appDb.prepare(`DELETE FROM ${table} WHERE user_id = ?`).run(userId);
     }

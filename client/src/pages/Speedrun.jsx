@@ -1,3 +1,4 @@
+import Arrow from '../components/Arrow';
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import NetworkBackground from '../components/NetworkBackground';
@@ -19,7 +20,7 @@ export default function Speedrun() {
       <div className={styles.wrap}>
         <div className={styles.headerRow}>
           <p className={styles.tag}>PRO &middot; SPEEDRUN</p>
-          <Link to={isPro ? '/pro' : '/menu'} className={styles.backLink}>&#8592; Back</Link>
+          <Link to={isPro ? '/pro' : '/menu'} className={styles.backLink}><Arrow left /> Back</Link>
         </div>
         <h1 className={styles.title}>Speedrun</h1>
         <p className={styles.subtitle}>Five article pairs, back to back. Only your total time counts, not path length. Classic scores your route and your speed together, Speedrun comes down to one number: how fast you clear all five.</p>
@@ -39,7 +40,7 @@ export default function Speedrun() {
               ))}
             </div>
 
-            <button className={styles.startBtn} onClick={() => navigate(`/game?mode=speedrun&d=${diff}`)}>START &#8594;</button>
+            <button className={styles.startBtn} onClick={() => navigate(`/game?mode=speedrun&d=${diff}`)}>START <Arrow /></button>
           </>
         ) : (
           <div className={styles.proGate}>
