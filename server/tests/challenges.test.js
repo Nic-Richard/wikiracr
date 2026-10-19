@@ -3,6 +3,7 @@ const { test } = require('node:test');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
+const { createRequire } = require('node:module');
 const { advanceClock } = require('../src/game/dailyClock');
 const { PathError, checkClicks } = require('../src/game/pathCheck');
 
@@ -18,8 +19,9 @@ async function verifyPath(titles, start, end) {
 
 function loadModule(filename, dependencies, extra = {}) {
   const module = { exports: {} };
+  const localRequire = createRequire(path.resolve(__dirname, filename));
   vm.runInNewContext(fs.readFileSync(path.resolve(__dirname, filename), 'utf8'), {
-    module, require(name) { return name in dependencies ? dependencies[name] : require(name); },
+    module, require(name) { return name in dependencies ? dependencies[name] : localRequire(name); },
     ...extra,
   });
   return module.exports;

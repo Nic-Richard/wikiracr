@@ -28,12 +28,19 @@ test('daily timing persists independently of client progress and scores cannot b
         if (name === 'better-sqlite3') return class {
           constructor(filename) {
             const sqlite = filename.endsWith('pairs.db') ? pairs : app;
-            return { exec: sql => sqlite.exec(sql), prepare: sql => sqlite.prepare(sql), pragma: value => sqlite.exec(`PRAGMA ${value}`) };
+            return { exec: sql => sqlite.exec(sql), prepare: sql => sqlite.prepare(sql), pragma: value => sqlite.exec(`PRAGMA ${value}`),
+              transaction: operation => () => {
+                sqlite.exec('BEGIN');
+                try { const result = operation(); sqlite.exec('COMMIT'); return result; }
+                catch (error) { sqlite.exec('ROLLBACK'); throw error; }
+              },
+            };
           }
         };
         if (name === 'fs') return { readFileSync: () => '[]' };
         if (name === './lib/logger') return { debug() {}, info() {}, warn() {} };
         if (name === './game/dailyClock') return { advanceClock: (clock, active) => advanceClock(clock, active, now) };
+        if (name === './lib/accountDeletionStore') return require('../src/lib/accountDeletionStore');
         return require(name);
       },
     });
@@ -59,4 +66,23 @@ test('daily timing persists independently of client progress and scores cannot b
   assert.equal(db.upsertDailyScore(score).changes, 1);
   assert.equal(db.upsertDailyScore({ ...score, score: 999 }).changes, 0);
   assert.equal(db.getUserDailyResult('u1', '2026-10-05').score, 20);
+  for (const userId of ['u1', 'u2']) {
+    db.saveGameHistory({ userId, pairId: 1, pathTaken: ['Alpha', 'Bravo', 'Charlie'], clicks: 2, timeSeconds: 8, completed: true, score: 20, mode: 'solo' });
+    db.upsertDailyScore({ ...score, userId });
+    db.saveDailyProgress(userId, score.date, ['Alpha'], 0, 0, 0);
+    db.updateDailyClock(userId, score.date, true);
+    db.upsertSpeedrunScore({ userId, username: 'Player', difficulty: 'easy', totalSeconds: 30, clicks: 4 });
+    db.upsertHigherLowerStreak({ userId, username: 'Player', streak: 3 });
+    db.saveReport({ userId, type: 'bug', message: 'Private report' });
+  }
+  db.applyEloResult({ userId: 'u1', username: 'One' }, { userId: 'u2', username: 'Two' });
+  db.getDeletionStore().request('u1', ['u1@example.com']);
+  db.deleteAccountData('u1');
+  for (const table of ['game_history', 'daily_progress', 'daily_clock', 'leaderboard_daily', 'user_elo', 'speedrun_scores', 'higherlower_scores', 'reports']) {
+    assert.equal(app.prepare(`SELECT count(*) AS n FROM ${table} WHERE user_id = ?`).get('u1').n, 0);
+    assert.equal(app.prepare(`SELECT count(*) AS n FROM ${table} WHERE user_id = ?`).get('u2').n, 1);
+  }
+  assert.equal(db.upsertDailyScore(score), undefined);
+  assert.equal(db.applyEloResult({ userId: 'u1', username: 'One' }, { userId: 'u2', username: 'Two' }), null);
+  assert.equal(app.prepare('SELECT count(*) AS n FROM leaderboard_daily WHERE user_id = ?').get('u1').n, 0);
 });

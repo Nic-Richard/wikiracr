@@ -6,6 +6,7 @@ const { advanceClock } = require('./game/dailyClock');
 
 let db;
 let appDb;
+let deletionStore;
 let higherLowerTitles = [];
 
 const TIER_NAMES = ['easy', 'medium', 'hard', 'expert'];
@@ -24,6 +25,7 @@ function initDb() {
   appDb = new Database(appPath);
   appDb.pragma('journal_mode = WAL');
   appDb.pragma('foreign_keys = ON');
+  deletionStore = require('./lib/accountDeletionStore').createDeletionStore(appDb);
 
   appDb.exec(`
     CREATE TABLE IF NOT EXISTS game_history (
@@ -186,6 +188,7 @@ function getDailyChallenge() {
 }
 
 function saveGameHistory(data) {
+  if (deletionStore.get(data.userId)) return;
   return appDb.prepare(`
     INSERT INTO game_history
       (user_id, pair_id, path_taken, clicks, time_seconds, completed, score, mode, room_id, created_at)
@@ -278,6 +281,7 @@ function getDailyClock(userId, date) {
 }
 
 function updateDailyClock(userId, date, active) {
+  if (deletionStore.get(userId)) return;
   const clock = advanceClock(getDailyClock(userId, date), active);
   appDb.prepare(`
     INSERT INTO daily_clock (user_id, date, elapsed_ms, active_at) VALUES (?, ?, ?, ?)
@@ -287,6 +291,7 @@ function updateDailyClock(userId, date, active) {
 }
 
 function saveDailyProgress(userId, date, navHist, histIdx, clicks, elapsedMs) {
+  if (deletionStore.get(userId)) return;
   appDb.prepare(`
     INSERT INTO daily_progress (user_id, date, nav_hist, hist_idx, clicks, elapsed_ms, updated_at)
     VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -354,6 +359,7 @@ function getUserSpeedrunBests(userId) {
 }
 
 function upsertDailyScore(data) {
+  if (deletionStore.get(data.userId)) return;
   return appDb.prepare(`
     INSERT INTO leaderboard_daily (user_id, username, date, score, clicks, time_seconds, created_at)
     VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -410,6 +416,7 @@ function calcEloDelta(ratingA, ratingB, scoreA, kA) {
 }
 
 function applyEloResult(winner, loser) {
+  if (deletionStore.get(winner.userId) || deletionStore.get(loser.userId)) return null;
   const w = getOrCreateElo(winner.userId, winner.username);
   const l = getOrCreateElo(loser.userId, loser.username);
 
@@ -461,6 +468,7 @@ function getUserElo(userId) {
 }
 
 function upsertSpeedrunScore(data) {
+  if (deletionStore.get(data.userId)) return;
   appDb.prepare(`
     INSERT INTO speedrun_scores (user_id, username, difficulty, total_seconds, clicks, created_at)
     VALUES (?, ?, ?, ?, ?, ?)
@@ -487,6 +495,7 @@ function getHigherLowerBest(userId) {
 }
 
 function upsertHigherLowerStreak(data) {
+  if (deletionStore.get(data.userId)) return 0;
   appDb.prepare(`
     INSERT INTO higherlower_scores (user_id, username, best_streak, updated_at)
     VALUES (?, ?, ?, ?)
@@ -499,6 +508,7 @@ function upsertHigherLowerStreak(data) {
 }
 
 function saveReport(data) {
+  if (data.userId && deletionStore.get(data.userId)) return;
   appDb.prepare(`
     INSERT INTO reports (type, message, context, user_id, created_at)
     VALUES (?, ?, ?, ?, ?)
@@ -506,6 +516,12 @@ function saveReport(data) {
 }
 
 module.exports = {
+  getDeletionStore: () => deletionStore,
+  deleteAccountData: userId => appDb.transaction(() => {
+    for (const table of ['game_history', 'daily_progress', 'daily_clock', 'leaderboard_daily', 'user_elo', 'speedrun_scores', 'higherlower_scores', 'reports']) {
+      appDb.prepare(`DELETE FROM ${table} WHERE user_id = ?`).run(userId);
+    }
+  })(),
   initDb,
   getPair,
   getCustomPair,

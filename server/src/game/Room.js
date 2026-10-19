@@ -50,11 +50,13 @@ class Room {
     this.maxRounds = mode === 'knockout' ? null : rounds;
 
     this.players = new Map();
+    this.playerAccounts = new Map();
   }
 
   addPlayer(socketId, user) {
     if (this.players.size >= this.options.maxPlayers) return false;
     if (this.state !== 'lobby') return false;
+    if (user.userId) this.playerAccounts.set(socketId, user.userId);
     this.players.set(socketId, {
       socketId,
       userId:    user.userId   || null,
@@ -111,6 +113,7 @@ class Room {
     player.socketId   = newSocketId;
     player.disconnected = false;
     this.players.set(newSocketId, player);
+    if (player.userId) this.playerAccounts.set(newSocketId, player.userId);
     if (this.hostSocketId === oldSocketId) this.hostSocketId = newSocketId;
     return player;
   }

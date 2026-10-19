@@ -45,10 +45,10 @@ app.use(cors({
   credentials: true,
 }));
 
-app.use('/api/stripe/webhook', express.raw({ type: 'application/json' }));
+app.use(['/api/stripe/webhook', '/api/clerk/webhook'], express.raw({ type: 'application/json' }));
 
 app.use((req, res, next) => {
-  if (req.originalUrl.startsWith('/api/stripe/webhook')) {
+  if (['/api/stripe/webhook', '/api/clerk/webhook'].some(path => req.originalUrl.startsWith(path))) {
     return next();
   }
   return express.json()(req, res, next);
@@ -72,6 +72,7 @@ setupSocketHandlers(io);
 const PORT = process.env.PORT || 3001;
 
 initDb().then(() => {
+  require('./lib/accountDeletionJob').startAccountDeletion(io);
   server.listen(PORT, () => {
     log.info(`Server running on port ${PORT}`);
   });

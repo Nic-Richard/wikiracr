@@ -109,4 +109,6 @@ async function nextPair(gameId) {
   return dealPair(game);
 }
 
-module.exports = { startGame, guess, nextPair, GameError };
+module.exports = { startGame, guess, nextPair, GameError,
+  eraseAccount: userId => { for (const [id, game] of games) if (game.userId === userId) games.delete(id); },
+};

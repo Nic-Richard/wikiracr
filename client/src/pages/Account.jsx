@@ -45,6 +45,41 @@ export default function Account() {
   const [billingLoading, setBillingLoading] = useState(false);
   const [upgradeLoading, setUpgradeLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [confirmation, setConfirmation] = useState('');
+  const [deleting, setDeleting] = useState(false);
+  const [deletionState, setDeletionState] = useState(null);
+
+  useEffect(() => {
+    if (!isLoaded || !isSignedIn) return;
+    let stopped = false;
+    (async () => {
+      const token = await getToken();
+      const response = await fetch('/api/account-deletion', { headers: { Authorization: `Bearer ${token}` } });
+      if (response.ok) {
+        const data = await response.json();
+        if (!stopped && data.state !== 'none') setDeletionState(data.state);
+      }
+    })().catch(() => {});
+    return () => { stopped = true; };
+  }, [getToken, isLoaded, isSignedIn]);
+
+  async function deleteAccount() {
+    if (deleting || confirmation !== 'DELETE') return;
+    setDeleting(true);
+    setError(null);
+    try {
+      const token = await getToken();
+      const response = await fetch('/api/account-deletion', {
+        method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirmation }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Could not request account deletion. Please try again.');
+      setDeletionState(data.state);
+    } catch (error) { setError(error.message); }
+    finally { setDeleting(false); }
+  }
 
   useEffect(() => {
     if (!isLoaded || !isSignedIn) return;
@@ -302,7 +337,17 @@ export default function Account() {
                 <button className={styles.secondaryBtn} onClick={() => signOut(() => navigate('/'))}>Sign out</button>
                 <div className={styles.securityNote}>
                   <h3>Account deletion</h3>
-                  <p>Use Manage login details, then scroll to the bottom of Clerk's profile panel to delete your account.</p>
+                  <p>Delete your sign-in, game history, progress, scores, rankings and linked reports. Active WikiRacr subscriptions are cancelled. This cannot be undone.</p>
+                  {deletionState ? (
+                    <p role="status">Deletion is requested and account access is closed. Failed cleanup steps retry automatically. You can sign out while this finishes.</p>
+                  ) : deleteOpen ? (
+                    <div className={styles.actions}>
+                      <label htmlFor="delete-confirmation">Type DELETE to confirm permanent deletion</label>
+                      <input id="delete-confirmation" className={styles.confirmInput} value={confirmation} onChange={event => setConfirmation(event.target.value)} disabled={deleting} autoComplete="off" />
+                      <button className={styles.deleteBtn} disabled={deleting || confirmation !== 'DELETE'} onClick={deleteAccount}>{deleting ? 'Requesting deletion...' : 'Permanently delete my account'}</button>
+                      <button className={styles.secondaryBtn} disabled={deleting} onClick={() => { setDeleteOpen(false); setConfirmation(''); }}>Keep my account</button>
+                    </div>
+                  ) : <button className={styles.deleteBtn} onClick={() => setDeleteOpen(true)}>Delete account</button>}
                 </div>
               </div>
             ) : (

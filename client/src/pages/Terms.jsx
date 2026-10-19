@@ -25,7 +25,7 @@ export default function Terms() {
           <section className={styles.hero}>
             <p className={styles.kicker}>TERMS OF SERVICE</p>
             <h1>Terms of Service</h1>
-            <p className={styles.updated}>Last updated: September 28, 2026</p>
+            <p className={styles.updated}>Last updated: October 18, 2026</p>
           </section>
 
 
@@ -54,6 +54,9 @@ export default function Terms() {
               </p>
               <p>
                 You must be at least 13 years old to create an account. You are responsible for keeping your account secure and for activity that happens through your account. Login and account management are handled through Clerk.
+              </p>
+              <p>
+                You can permanently delete your account from <Link to="/account">Account</Link>. Deletion closes access, cancels active WikiRacr subscriptions and removes account-linked game data and bot alerts, with retries if a provider is unavailable. See the <Link to="/privacy#delete-account">privacy policy</Link> for retained records. Cancelling a subscription alone keeps your account. Deletion does not automatically refund past payments or limit refund rights provided by law; contact support for a refund request.
               </p>
             </section>
 

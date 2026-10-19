@@ -25,7 +25,7 @@ export default function Privacy() {
           <section className={styles.hero}>
             <p className={styles.kicker}>PRIVACY POLICY</p>
             <h1>Privacy Policy</h1>
-            <p className={styles.updated}>Last updated: October 11, 2026</p>
+            <p className={styles.updated}>Last updated: October 18, 2026</p>
             <p className={styles.intro}>
               This policy explains what WikiRacr collects, how it is used, what may be visible to other players, and where third-party services fit in. WikiRacr is operated by Nic Richard in New Brunswick, Canada.
             </p>
@@ -114,14 +114,14 @@ export default function Privacy() {
                 WikiRacr keeps information for as long as it is reasonably useful for operating the game, showing stats and leaderboards, supporting accounts, detecting abuse, maintaining records, or meeting legal and security needs.
               </p>
               <p>
-                Some information may be kept longer than an active account, such as leaderboard entries, reports, logs, fraud or abuse records, and backup copies. Retention periods may vary by data type and may change as WikiRacr matures.
+                Limited operational logs, backup copies, and records required for fraud prevention or legal obligations may remain after deletion. Payment providers may retain transaction records required by law. Deletion receipts with limited account identifiers and status are retained for 30 days to support retries and prevent reactivation.
               </p>
             </section>
 
-            <section className={styles.section}>
+            <section id="delete-account" className={styles.section}>
               <h2>9. Your choices and account deletion</h2>
               <p>
-                You can manage login details and delete your Clerk account from the account profile panel where available. Deleting your account may not instantly remove every game record, leaderboard entry, report, backup, log, or billing record.
+                Open <Link to="/account">Account</Link> and choose Delete account. Type DELETE to confirm. This permanently removes your Clerk sign-in, game history, daily progress, scores, rankings and account-linked reports, cancels active WikiRacr subscriptions and removes matching alerts posted by WikiRacr's Discord bot. Account access closes as soon as the request is accepted; failed cleanup steps retry automatically. Signing out or cancelling a subscription alone does not delete your account.
               </p>
               <p>
                 For account or data requests, contact <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>. WikiRacr may need to verify your account before making changes to account-linked information.

@@ -24,6 +24,28 @@ const { verifyPath, checkClicks, cleanClientHistory, MIN_SECONDS_PER_CLICK } = r
 const speedrunRuns = require('../game/speedrunRuns');
 const higherLower = require('../game/higherLower');
 const { calcScore } = require('../game/scoring');
+const { getDeletionStore } = require('../db');
+const { summary } = require('../lib/accountDeletion');
+
+router.get('/account-deletion', requireAuth, (req, res) => {
+  res.json(summary(getDeletionStore().get(req.userId)));
+});
+router.post('/account-deletion', requireAuth, async (req, res) => {
+  try {
+    const result = await require('../lib/accountDeletionJob').requestDeletion(req.userId, req.body.confirmation);
+    res.status(result.status).json(result.body);
+  } catch { res.status(503).json({ error: 'Could not request account deletion. Please try again.' }); }
+});
+router.post('/clerk/webhook', async (req, res) => {
+  if (!process.env.CLERK_WEBHOOK_SIGNING_SECRET) return res.status(503).json({ error: 'Clerk webhook is not configured' });
+  let userId;
+  try { userId = await require('../lib/clerkWebhook').deletedUserEvent(req.body, req.headers); }
+  catch { return res.status(400).json({ error: 'Invalid Clerk webhook signature or payload' }); }
+  try {
+    if (userId) require('../lib/accountDeletionJob').requestDeletedIdentity(userId);
+    res.json({ received: true });
+  } catch { res.status(503).json({ error: 'Could not record account deletion; retry this event' }); }
+});
 
 function sendGameError(res, err, label) {
   if (err.status) return res.status(err.status).json({ error: err.message });
@@ -315,6 +337,10 @@ router.post('/stripe/create-checkout', requireAuth, async (req, res) => {
       subscription_data:    { metadata: { clerkUserId: req.userId } },
     });
     log.debug('[stripe] session created:', session.id);
+    if (getDeletionStore().get(req.userId)) {
+      await stripe.checkout.sessions.expire(session.id);
+      return res.status(410).json({ error: 'Account deletion has been requested.' });
+    }
     res.json({ url: session.url });
   } catch (err) {
     log.error('[stripe] checkout error:', err.message);
@@ -367,6 +393,17 @@ router.post('/stripe/webhook', async (req, res) => {
         return res.json({ received: true });
       }
 
+      if (getDeletionStore().get(clerkUserId)) {
+        getDeletionStore().addReferences(clerkUserId, [session.customer, session.subscription]);
+        if (session.subscription) {
+          const subscription = await stripe.subscriptions.retrieve(session.subscription);
+          if (!['canceled', 'incomplete_expired'].includes(subscription.status)) {
+            await stripe.subscriptions.cancel(subscription.id, { invoice_now: false, prorate: false });
+          }
+        }
+        return res.json({ received: true });
+      }
+
       if (session.customer) {
         await stripe.customers.update(session.customer, {
           metadata: { clerkUserId },
@@ -399,6 +436,8 @@ router.post('/stripe/webhook', async (req, res) => {
         return res.json({ received: true });
       }
 
+      if (getDeletionStore().get(clerkUserId)) return res.json({ received: true });
+
       const user = await clerk.users.getUser(clerkUserId);
       await clerk.users.updateUser(clerkUserId, {
         publicMetadata: {
@@ -416,6 +455,7 @@ router.post('/stripe/webhook', async (req, res) => {
 
     if (event.type === 'invoice.payment_failed') {
       const invoice = event.data.object;
+      if (getDeletionStore().forReference(invoice.customer)) return res.json({ received: true });
       log.info('[webhook] payment failed for customer:', invoice.customer);
       sendAlert('billing', {
         title: 'Pro payment failed',

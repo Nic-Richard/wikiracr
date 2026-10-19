@@ -80,6 +80,9 @@
   .textBtn, .tierPill { align-self: flex-start; }
 }
 .supportCard { margin-top: 12px; display: grid; gap: 10px; }
+.confirmInput { width: 100%; padding: 12px; border: 1px solid var(--muted); border-radius: 8px; color: var(--text); background: var(--bg); font: inherit; }
+.deleteBtn { padding: 12px; border: 1px solid #e66e76; border-radius: 8px; color: #ffadb3; background: transparent; cursor: pointer; font: inherit; }
+.deleteBtn:disabled { opacity: .5; cursor: default; }
 .supportCard p { color: var(--muted); font-size: 13px; line-height: 1.55; }
 .supportCard a:not(.secondaryBtn) { color: var(--accent); }
 .supportCard a:not(.secondaryBtn):hover { color: #79b8ff; }

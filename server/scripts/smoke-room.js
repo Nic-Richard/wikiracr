@@ -317,6 +317,20 @@ test('reconnect only restores a player when they return to the same room', () =>
   assert.strictEqual(player(room, 'r1-new').disconnected, false);
 });
 
+test('account erasure removes active and departed player snapshots without removing an opponent', () => {
+  const io = makeIo(['erase-one', 'erase-two']);
+  const room = gm.createRoom('erase-one', { userId: 'erase-user', username: 'Private' }, { difficulty: 'random' });
+  gm.joinRoom(room.code, 'erase-two', { userId: 'other-user', username: 'Other' });
+  room.roundHistory.push({ results: [{ socketId: 'erase-one', username: 'Private' }, { socketId: 'erase-two', username: 'Other' }], winnerSocketId: 'erase-one', eliminatedThisRound: [] });
+  gm.leaveRoom('erase-one', io);
+  gm.eraseAccount('erase-user', io);
+  assert.strictEqual(room.roundHistory[0].results.length, 1);
+  assert.strictEqual(room.roundHistory[0].results[0].username, 'Other');
+  assert.strictEqual(room.players.has('erase-two'), true);
+  assert.strictEqual(room.roundHistory[0].winnerSocketId, null);
+  assert.strictEqual([...room.playerAccounts.values()].includes('erase-user'), false);
+});
+
 (async () => {
   let passed = 0;
 

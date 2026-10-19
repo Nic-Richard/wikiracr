@@ -30,6 +30,7 @@ function applyEloIfEligible(room, results) {
     { userId: winner.userId, username: winner.username },
     { userId: loser.userId,  username: loser.username },
   );
+  if (!eloResult) return results;
 
   results.players = results.players.map(p => {
     if (p.userId === eloResult.winner.userId) return { ...p, elo: eloResult.winner };
@@ -505,6 +506,24 @@ function rematch(io, code, socketId) {
 }
 
 module.exports = {
+  eraseAccount: (userId, io) => {
+    for (const room of rooms.values()) {
+      const sockets = [...room.playerAccounts].filter(([, id]) => id === userId).map(([socketId]) => socketId);
+      for (const round of room.roundHistory) {
+        round.results = round.results.filter(player => !sockets.includes(player.socketId));
+        if (sockets.includes(round.winnerSocketId)) round.winnerSocketId = null;
+        round.eliminatedThisRound = round.eliminatedThisRound.filter(id => !sockets.includes(id));
+      }
+      for (const socketId of sockets) {
+        room.playerAccounts.delete(socketId);
+        const timerKey = `${room.code}:${socketId}`;
+        clearTimeout(disconnectTimers.get(timerKey));
+        disconnectTimers.delete(timerKey);
+        leaveRoom(socketId, io);
+      }
+      if (sockets.length && rooms.has(room.code)) io.to(room.code).emit('room-updated', room.getPublicState());
+    }
+  },
   rematch,
   createRoom,
   joinRoom,
