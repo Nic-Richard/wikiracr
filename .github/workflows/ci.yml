@@ -24,4 +24,5 @@ jobs:
       - run: npm run smoke:room --prefix server
       - run: npm test --prefix server
       - run: node --test client/tests/*.test.mjs
+      - run: bash -n scripts/deploy-api-remote.sh
       - run: npm run build --prefix client
