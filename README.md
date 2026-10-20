@@ -102,11 +102,25 @@ npm ci --prefix client
 npm run smoke:room --prefix server
 npm test --prefix server
 npm run build --prefix client
+node --test client/tests/*.test.mjs
+node client/scripts/check-prerender.mjs
 ```
 
 GitHub Actions runs these checks and server syntax checks on pushes to main and pull requests.
 The tests use local fixtures; they do not contact Wikipedia, Clerk, or Stripe. Database tests
 exercise the SQL against Node's in-memory SQLite engine.
+
+The web build prerenders the homepage, wiki-racing introduction, rules, legal pages
+and missing-page view from the existing React components. They hydrate into the
+same application; game, account and room routes keep the client app. Build-time
+rendering makes no network requests and includes no player or session data.
+Route metadata is shared between the build and browser navigation. Nginx serves
+the generated route entry points and returns HTTP 404 for unknown paths.
+
+The browser check requires Chrome (`CHROME_PATH` can override its location) and
+blocks external services, API requests and sockets. CI uses a placeholder Clerk
+publishable key for these offline checks. Normal production builds use the client
+environment's real publishable key. Android's separate Vite build stays unchanged.
 
 Daily and speedrun challenges reveal optimal routes after a verified completion. Signed-in
 daily attempts use a persisted server clock, with visibility updates every ten seconds and

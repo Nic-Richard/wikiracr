@@ -95,7 +95,7 @@ export default function HowToPlay() {
 
   return (
     <div className={styles.root} data-route-scroll>
-      <script type="application/ld+json">{JSON.stringify(FAQ_SCHEMA)}</script>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(FAQ_SCHEMA).replace(/</g, '\\u003c') }} />
       <NetworkBackground parallax={motionEnabled} />
       <div className={styles.vignette} />
 

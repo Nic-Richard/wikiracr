@@ -1,12 +1,20 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
+import { NATIVE_APP } from './platform';
 
 const MotionContext = createContext({ enabled: true, toggle: () => {} });
 
 export function MotionProvider({ children }) {
   const [enabled, setEnabled] = useState(() => {
+    if (!NATIVE_APP) return true;
     try { return localStorage.getItem('wikiracr-motion') !== 'false'; }
     catch { return true; }
   });
+
+  useEffect(() => {
+    if (NATIVE_APP) return;
+    try { setEnabled(localStorage.getItem('wikiracr-motion') !== 'false'); }
+    catch {}
+  }, []);
 
   function toggle() {
     const next = !enabled;
