@@ -77,6 +77,7 @@ test('daily timing persists independently of client progress and scores cannot b
     db.saveReport({ userId, type: 'bug', message: 'Private report' });
   }
   db.applyEloResult({ userId: 'u1', username: 'One' }, { userId: 'u2', username: 'Two' });
+  db.saveReport({ userId: 'u2', type: 'player', message: 'Spam', context: { reportedUserId: 'u1', text: 'Private chat' } });
   db.getDeletionStore().request('u1', ['u1@example.com']);
   db.deleteAccountData('u1');
   for (const table of ['game_history', 'daily_progress', 'daily_clock', 'leaderboard_daily', 'user_elo', 'speedrun_scores', 'higherlower_scores', 'reports']) {

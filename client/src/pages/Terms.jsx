@@ -85,6 +85,7 @@ export default function Terms() {
 
             <section className={styles.section}>
               <h2>6. Multiplayer chat and player behavior</h2>
+              <p>Use Block beside a chat message to hide that player's messages on this device. Manage blocked players from the chat panel. Guest blocks last until the guest reconnects; blocks do not prevent matchmaking. Use Report beside a message to send the message, player details and your selected reason to WikiRacr for review.</p>
               <p>
                 Multiplayer chat is for game-related conversation and light banter, not harassment. Do not post threats, hateful content, sexual content, spam, private information, impersonation, or anything illegal.
               </p>

@@ -508,6 +508,7 @@ function rematch(io, code, socketId) {
 module.exports = {
   eraseAccount: (userId, io) => {
     for (const room of rooms.values()) {
+      if (room.recentChat) room.recentChat = room.recentChat.filter(message => message.userId !== userId);
       const sockets = [...room.playerAccounts].filter(([, id]) => id === userId).map(([socketId]) => socketId);
       for (const round of room.roundHistory) {
         round.results = round.results.filter(player => !sockets.includes(player.socketId));

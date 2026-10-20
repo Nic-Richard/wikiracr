@@ -522,6 +522,7 @@ module.exports = {
   getDeletionStore: () => deletionStore,
   deleteAccountData: userId => appDb.transaction(() => {
     playStore.erase(userId);
+    appDb.prepare("DELETE FROM reports WHERE json_extract(context, '$.reportedUserId') = ?").run(userId);
     for (const table of ['game_history', 'daily_progress', 'daily_clock', 'leaderboard_daily', 'user_elo', 'speedrun_scores', 'higherlower_scores', 'reports']) {
       appDb.prepare(`DELETE FROM ${table} WHERE user_id = ?`).run(userId);
     }

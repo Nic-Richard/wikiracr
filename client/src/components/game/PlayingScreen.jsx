@@ -48,6 +48,7 @@ export default function PlayingScreen({
   voteSkip,
   giveUp,
   sendChat,
+  reportChat,
   toggleMute,
   toggleChat,
   openSettings,
@@ -197,7 +198,7 @@ export default function PlayingScreen({
       </div>
 
       {!isSolo && chatEnabled && (
-        <ChatPanel messages={chatMessages} mySocketId={socketId} onSend={sendChat} />
+        <ChatPanel messages={chatMessages} mySocketId={socketId} onSend={sendChat} onReport={reportChat} />
       )}
 
       {settingsOpen && (

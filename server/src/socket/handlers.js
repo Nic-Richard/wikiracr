@@ -1,7 +1,9 @@
 const gm = require('../game/GameManager');
 const { isValidLink } = require('../game/validator');
 const { cleanClientHistory } = require('../game/pathCheck');
-const { saveGameHistory, getUserElo } = require('../db');
+const { saveGameHistory, getUserElo, saveReport } = require('../db');
+const { sendAlert } = require('../lib/alerts');
+const { setupChat } = require('./chat');
 const { resolveSocketUser, verifyProUser } = require('../lib/socketAuth');
 const log = require('../lib/logger');
 const { sanitizeDefaultRoomOptions, sanitizeCustomRoomOptions } = require('./roomOptions');
@@ -29,6 +31,7 @@ function setupSocketHandlers(io) {
   });
 
   io.on('connection', (socket) => {
+    setupChat(io, socket, { getRoom: gm.getRoomBySocket, saveReport, sendAlert });
 
     socket.on('create-room', (payload = {}, cb) => {
       const { token, ranked, ...options } = payload;
@@ -251,21 +254,6 @@ function setupSocketHandlers(io) {
       } else if (room.allFinished()) {
         gm.finishCurrentRound(io, room.code);
       }
-    });
-
-    socket.on('chat-message', ({ text }) => {
-      const room = gm.getRoomBySocket(socket.id);
-      if (!room) return;
-
-      const clean = String(text || '').trim().slice(0, 200);
-      if (!clean) return;
-
-      io.to(room.code).emit('chat-message', {
-        socketId: socket.id,
-        username: socket.user.username,
-        text:     clean,
-        at:       Date.now(),
-      });
     });
 
     socket.on('rematch', ({ code }, cb) => {

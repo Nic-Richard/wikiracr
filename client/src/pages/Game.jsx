@@ -85,6 +85,17 @@ export default function Game() {
     socketRef.current?.emit('chat-message', { text });
   }
 
+  function reportChat(messageId, reason) {
+    return new Promise((resolve, reject) => {
+      const socket = socketRef.current;
+      if (!socket?.connected) return reject(new Error('Reconnect before reporting.'));
+      socket.timeout(10000).emit('report-chat', { messageId, reason }, (error, result) => {
+        if (error || !result?.ok) reject(new Error(result?.error || 'Could not send report. Try again.'));
+        else resolve();
+      });
+    });
+  }
+
   function copyRoomCode() {
     const value = code || roomState?.code;
     if (!value) return;
@@ -521,6 +532,7 @@ export default function Game() {
         toggleChat={toggleChat}
         chatMessages={chatMessages}
         sendChat={sendChat}
+        reportChat={reportChat}
       />
     );
   }
@@ -579,6 +591,7 @@ export default function Game() {
         voteSkip={voteSkip}
         giveUp={giveUp}
         sendChat={sendChat}
+        reportChat={reportChat}
         toggleMute={toggleMute}
         toggleChat={toggleChat}
         openSettings={() => setSettingsOpen(true)}

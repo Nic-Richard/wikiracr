@@ -29,6 +29,7 @@ export default function LobbyScreen({
   toggleChat,
   chatMessages,
   sendChat,
+  reportChat,
 }) {
   const isMatchmakingLobby = !!roomState?.options?.matchmaking;
   const lobbyAutoStartSeconds = isMatchmakingLobby && roomState?.lobbyAutoStartAt
@@ -109,7 +110,7 @@ export default function LobbyScreen({
       </div>
 
       {chatEnabled && (
-        <ChatPanel messages={chatMessages} mySocketId={socketId} onSend={sendChat} />
+        <ChatPanel messages={chatMessages} mySocketId={socketId} onSend={sendChat} onReport={reportChat} />
       )}
 
       {settingsOpen && (

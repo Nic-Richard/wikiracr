@@ -100,6 +100,17 @@
 }
 .sendBtn:disabled { opacity: 0.4; cursor: default; }
 
+.actions, .blockedRow { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.blockedRow { justify-content: space-between; font-size: 13px; overflow-wrap: anywhere; }
+.action { background: var(--sur2); color: var(--text); border: 1px solid var(--bdr2); border-radius: 3px; padding: 6px 10px; min-height: 36px; font: inherit; font-size: 12px; cursor: pointer; }
+.action:hover, .action:focus-visible { border-color: var(--accent); }
+.action:disabled { opacity: 0.5; cursor: default; }
+.notice { font-size: 12px; line-height: 1.5; color: var(--muted); margin: 0; }
+.reportForm { display: flex; flex-direction: column; gap: 8px; font-size: 13px; }
+.reportForm blockquote { margin: 0; padding-left: 8px; border-left: 2px solid var(--bdr2); overflow-wrap: anywhere; }
+.reportForm p { font-size: 12px; color: var(--muted); margin: 0; }
+.reportForm select { background: var(--sur2); color: var(--text); padding: 8px; border: 1px solid var(--bdr2); border-radius: 3px; }
+
 @media (max-width: 700px) {
   .launcher { right: 10px; bottom: 56px; padding: 7px 12px; font-size: 11px; }
   .panel { right: 8px; bottom: 54px; width: min(340px, calc(100vw - 16px)); height: min(320px, 48dvh); }
