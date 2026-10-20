@@ -63,6 +63,7 @@ See `../docs/PLAY_BILLING.md` for server setup and required purchase checks.
 - Check a real solo race, daily challenge and multiplayer room, including reconnect
   after backgrounding and Android Back. Fixture checks do not replace live checks.
 - Complete the Play listing, declarations, reviewer access and testing setup.
+  Draft copy, declaration worksheet and prepared assets are in `store/`.
   Build 1 is uploaded as an internal draft. Replace it with build 3 for the final
   UI and wording changes, then validate the internal release before rollout.
 - Increment `versionCode` for each subsequent Play upload. No EAS build is needed.

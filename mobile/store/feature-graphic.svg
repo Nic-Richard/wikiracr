@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="500" viewBox="0 0 1024 500">
+  <rect width="1024" height="500" fill="#0d1117"/>
+  <path d="M64 125h56" stroke="#58a6ff" stroke-width="5"/>
+  <text x="64" y="208" font-family="Arial,sans-serif" font-size="60" font-weight="700"><tspan fill="#e6edf3">Wiki</tspan><tspan fill="#58a6ff">Racr</tspan></text>
+  <text x="64" y="272" font-family="Arial,sans-serif" font-size="29" fill="#e6edf3">Race through Wikipedia.</text>
+  <text x="64" y="320" font-family="Arial,sans-serif" font-size="21" fill="#bbc4cf">Find a route. Reach the goal.</text>
+  <image href="../../client/public/icon-512.png" x="700" y="118" width="264" height="264"/>
+</svg>
