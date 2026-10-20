@@ -68,7 +68,10 @@ try {
     await page.evaluate(() => localStorage.setItem('wikiracr-motion', 'false'));
     await page.goto(origin + '/how-to-play', { waitUntil: 'networkidle0' });
     await page.waitForFunction(() => document.querySelector('button[title="Enable motion effects"]'));
-    if (width > 700) {
+    const hasFloatingControl = await page.evaluate(() => !matchMedia('(hover: none), (pointer: coarse), (max-width: 700px)').matches);
+    const motionButton = await page.$('button[title="Enable motion effects"]');
+    assert.equal(await motionButton.isVisible(), hasFloatingControl);
+    if (hasFloatingControl) {
       await page.click('button[title="Enable motion effects"]');
       await page.waitForFunction(() => document.querySelector('button[title="Disable motion effects"]'));
     }
