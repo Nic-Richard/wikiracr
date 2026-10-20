@@ -110,6 +110,8 @@
 
 .thanks { font-size: 13px; color: var(--green); text-align: center; padding: 4px 0; }
 .error  { font-size: 11px; color: var(--red); margin-bottom: 6px; }
+.disclosure { margin: 8px 0; font-size: 12px; line-height: 1.45; color: var(--muted); }
+.labelToggle { border: 1px solid #30363d; border-radius: 3px; padding: 6px 10px; min-height: 36px; color: #c9d1d9; background: #161b22; font-size: 12px; cursor: pointer; white-space: nowrap; }
 
 @media (max-width: 760px), (pointer: coarse) and (max-width: 940px) {
   .toggle { width: 27px; height: 27px; }

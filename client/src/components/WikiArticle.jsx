@@ -1,5 +1,7 @@
 import Arrow from './Arrow';
 import { appFetch } from '../lib/platform';
+import { checkArticle } from '../lib/articleSafety';
+import ReportButton from './ReportButton';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import styles from './WikiArticle.module.css';
 
@@ -162,7 +164,8 @@ function buildDoc(html) {
 }
 
 async function fetchHtml(title) {
-  const res = await appFetch(`https://en.wikipedia.org/api/rest_v1/page/html/${encodeURIComponent(title)}`);
+  const allowedTitle = await checkArticle(title);
+  const res = await appFetch(`https://en.wikipedia.org/api/rest_v1/page/html/${encodeURIComponent(allowedTitle)}`);
   if (!res.ok) throw new Error(`Wikipedia returned ${res.status}`);
   const text = await res.text();
   const doc  = new DOMParser().parseFromString(text, 'text/html');
@@ -208,19 +211,22 @@ export default function WikiArticle({ title, goalTitle, onLinkClick }) {
 
   useEffect(() => {
     let url = null;
+    let cancelled = false;
     setLoading(true);
     setError(null);
+    setBlobUrl(null);
 
     fetchHtml(title)
       .then(html => {
+        if (cancelled) return;
         const blob = new Blob([buildDoc(html)], { type: 'text/html; charset=utf-8' });
         url = URL.createObjectURL(blob);
         setBlobUrl(url);
         setLoading(false);
       })
-      .catch(e => { setError(e.message); setLoading(false); });
+      .catch(e => { if (!cancelled) { setError(e.message); setLoading(false); } });
 
-    return () => { if (url) URL.revokeObjectURL(url); };
+    return () => { cancelled = true; if (url) URL.revokeObjectURL(url); };
   }, [title]);
 
   useEffect(() => {
@@ -290,6 +296,10 @@ export default function WikiArticle({ title, goalTitle, onLinkClick }) {
   const displayGoal  = goalTitle.replace(/_/g, ' ');
   const articleUrl = `https://en.wikipedia.org/wiki/${encodeURIComponent(title.replace(/ /g, '_'))}`;
 
+  const safetyControls = <div className={styles.safetyBar}>
+    <ReportButton key={title} context={{ articleTitle: title, page: 'article' }} label="Report article" openUp />
+  </div>;
+
   if (loading) {
     return (
       <div className={styles.state}>
@@ -301,8 +311,9 @@ export default function WikiArticle({ title, goalTitle, onLinkClick }) {
 
   if (error) {
     return (
-      <div className={styles.state}>
-        <span className={styles.err}>Could not load: {error}</span>
+      <div className={styles.errorState}>
+        <div className={styles.state}><span className={styles.err}>{error}</span></div>
+        {safetyControls}
       </div>
     );
   }
@@ -356,6 +367,7 @@ export default function WikiArticle({ title, goalTitle, onLinkClick }) {
         sandbox="allow-scripts"
         onLoad={applyArticleZoom}
       />
+      {safetyControls}
       <div className={styles.attribution} aria-label="Wikipedia attribution">
         <a href={articleUrl} target="_blank" rel="noreferrer">Wikipedia content</a>
         <span aria-hidden="true">·</span>

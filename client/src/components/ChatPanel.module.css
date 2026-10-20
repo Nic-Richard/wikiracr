@@ -110,6 +110,8 @@
 .reportForm blockquote { margin: 0; padding-left: 8px; border-left: 2px solid var(--bdr2); overflow-wrap: anywhere; }
 .reportForm p { font-size: 12px; color: var(--muted); margin: 0; }
 .reportForm select { background: var(--sur2); color: var(--text); padding: 8px; border: 1px solid var(--bdr2); border-radius: 3px; }
+.reportForm a { color: var(--accent); text-decoration: underline; }
+.reportForm label { line-height: 1.5; }
 
 @media (max-width: 700px) {
   .launcher { right: 10px; bottom: 56px; padding: 7px 12px; font-size: 11px; }

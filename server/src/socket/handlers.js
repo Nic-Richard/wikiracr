@@ -202,8 +202,11 @@ function setupSocketHandlers(io) {
       }
     });
 
-    socket.on('nav-move', ({ to }, cb) => {
+    socket.on('nav-move', async ({ to }, cb) => {
       try {
+        if (typeof to !== 'string' || !to.trim() || to.length > 300) return cb?.({ ok: false });
+        if (!gm.getRoomBySocket(socket.id)) return cb?.({ ok: false });
+        if (!(await require('../lib/articleAccess').articleAccess(to)).allowed) return cb?.({ ok: false, error: 'This article is unavailable.' });
         const result = gm.handleNavMove(io, socket.id, to);
         if (!result) return cb?.({ ok: false });
         cb?.({ ok: true, result });

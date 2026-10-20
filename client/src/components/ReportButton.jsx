@@ -5,10 +5,10 @@ import { NATIVE_APP } from '../lib/platform';
 import { useAuth } from '../lib/auth';
 import styles from './ReportButton.module.css';
 
-export default function ReportButton({ context = {}, openUp = false }) {
+export default function ReportButton({ context = {}, openUp = false, label }) {
   const { getToken, isSignedIn } = useAuth();
   const [open, setOpen]     = useState(false);
-  const [type, setType]     = useState(context.pairId ? 'pair' : 'bug');
+  const [type, setType]     = useState(context.articleTitle ? 'article' : context.pairId ? 'pair' : 'bug');
   const [message, setMessage] = useState('');
   const [state, setState]   = useState('idle');
   const boxRef = useRef(null);
@@ -65,6 +65,7 @@ export default function ReportButton({ context = {}, openUp = false }) {
             <>
               <div className={styles.heading}><p className={styles.label}>REPORT A PROBLEM</p>{NATIVE_APP && <button className={styles.close} onClick={() => setOpen(false)} aria-label="Close report">&#215;</button>}</div>
               <div className={styles.typeRow}>
+                {context.articleTitle && <button className={`${styles.typeBtn} ${type === 'article' ? styles.typeBtnSel : ''}`} onClick={() => setType('article')}>Article</button>}
                 {context.pairId && (
                   <button className={`${styles.typeBtn} ${type === 'pair' ? styles.typeBtnSel : ''}`} onClick={() => setType('pair')}>Bad pair</button>
                 )}
@@ -80,6 +81,7 @@ export default function ReportButton({ context = {}, openUp = false }) {
                 rows={3}
                 aria-label="Describe the problem"
               />
+              <p className={styles.disclosure}>Your report and game context are saved by WikiRacr and sent to its private staff channel on Discord. Avoid including passwords or other sensitive information.</p>
               {state === 'error' && <p className={styles.error}>Could not send. Try again?</p>}
               <button className={styles.submit} onClick={submit} disabled={state === 'sending' || !message.trim()}>
                 {state === 'sending' ? 'SENDING...' : 'SEND REPORT'}
@@ -90,8 +92,8 @@ export default function ReportButton({ context = {}, openUp = false }) {
   );
   return (
     <div className={styles.wrap} ref={boxRef}>
-      <button className={styles.toggle} onClick={toggle} title="Report a problem" aria-label="Report a problem" aria-expanded={open}>
-        <span className={styles.badge}>!</span>
+      <button className={label ? styles.labelToggle : styles.toggle} onClick={toggle} title={label || 'Report a problem'} aria-label={label || 'Report a problem'} aria-expanded={open}>
+        {label || <span className={styles.badge}>!</span>}
       </button>
       {open && (NATIVE_APP ? createPortal(<dialog ref={dialogRef} className={styles.nativeDialog} data-native-report aria-label="Report a problem" onCancel={() => setOpen(false)} onClick={event => { if (event.target === event.currentTarget) setOpen(false); }}>{panel}</dialog>, document.body) : panel)}
     </div>

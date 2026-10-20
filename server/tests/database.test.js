@@ -42,6 +42,7 @@ test('daily timing persists independently of client progress and scores cannot b
         if (name === './game/dailyClock') return { advanceClock: (clock, active) => advanceClock(clock, active, now) };
         if (name === './lib/accountDeletionStore') return require('../src/lib/accountDeletionStore');
         if (name === './lib/playStore') return require('../src/lib/playStore');
+        if (name === './lib/articlePolicy') return require('../src/lib/articlePolicy');
         return require(name);
       },
     });
@@ -87,4 +88,14 @@ test('daily timing persists independently of client progress and scores cannot b
   assert.equal(db.upsertDailyScore(score), undefined);
   assert.equal(db.applyEloResult({ userId: 'u1', username: 'One' }, { userId: 'u2', username: 'Two' }), null);
   assert.equal(app.prepare('SELECT count(*) AS n FROM leaderboard_daily WHERE user_id = ?').get('u1').n, 0);
+  const policy = db.getArticlePolicy();
+  assert.ok(db.getPair('easy'));
+  policy.block('Bravo', 'Test intermediate article');
+  assert.equal(db.getPair('easy').id, 2);
+  assert.equal(db.getCustomPair('Alpha', 'Charlie'), null);
+  policy.unblock('Bravo');
+  app.prepare('INSERT OR REPLACE INTO daily_challenge VALUES (?, ?)').run(new Date(now).toISOString().slice(0, 10), 1);
+  assert.ok(db.getDailyChallenge());
+  policy.block('Alpha', 'Test daily start');
+  assert.equal(db.getDailyChallenge(), null);
 });

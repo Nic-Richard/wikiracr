@@ -23,6 +23,7 @@ try {
   page.on('request', request => {
     const url = new URL(request.url());
     if (url.hostname === 'localhost' || ['blob:', 'data:'].includes(url.protocol)) return request.continue();
+    if (url.hostname === 'wikiracr.com' && url.pathname === '/api/articles/check') return request.respond({ status: 200, contentType: 'application/json', headers: { 'Access-Control-Allow-Origin': '*' }, body: JSON.stringify({ allowed: true, title: url.searchParams.get('title') }) });
     if (url.hostname === 'wikiracr.com' && url.pathname === '/api/pair') return request.respond({ status: 200, contentType: 'application/json', headers: { 'Access-Control-Allow-Origin': '*' }, body: JSON.stringify({ pair: { id: 1, startTitle: 'Alpha', endTitle: 'Charlie', pathLength: 2, optimalPath: ['Alpha', 'Bravo', 'Charlie'] } }) });
     if (url.hostname === 'en.wikipedia.org' && url.pathname.includes('/page/html/')) {
       const title = decodeURIComponent(url.pathname.split('/').pop()), next = title === 'Alpha' ? 'Bravo' : 'Charlie';

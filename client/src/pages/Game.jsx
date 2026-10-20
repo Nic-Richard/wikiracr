@@ -81,8 +81,8 @@ export default function Game() {
 
   const [settingsOpen, setSettingsOpen] = useState(false);
 
-  function sendChat(text) {
-    socketRef.current?.emit('chat-message', { text });
+  function sendChat(text, termsVersion) {
+    socketRef.current?.emit('chat-message', { text, termsVersion });
   }
 
   function reportChat(messageId, reason) {

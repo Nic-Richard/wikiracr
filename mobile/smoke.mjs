@@ -59,6 +59,7 @@ try {
     if (url.hostname === 'wikiracr.com' && url.pathname.startsWith('/api/')) {
       requests.push({ path: url.pathname, method: request.method(), token: request.headers().authorization });
       if (request.method() === 'OPTIONS') return respond({});
+      if (url.pathname === '/api/articles/check') return respond({ allowed: true, title: url.searchParams.get('title') });
       if (url.pathname === '/api/pair') return respond({ pair: { id: 1, startTitle: 'Alpha', endTitle: goal, pathLength: 2, optimalPath: ['Alpha', 'Bravo', goal] } });
       if (url.pathname === '/api/report') return respond({ ok: true });
       if (url.pathname.startsWith('/api/leaderboard/')) return respond([]);

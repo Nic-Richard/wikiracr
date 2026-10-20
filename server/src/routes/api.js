@@ -27,6 +27,14 @@ const { calcScore } = require('../game/scoring');
 const { getDeletionStore } = require('../db');
 const { summary } = require('../lib/accountDeletion');
 
+router.get('/articles/check', rateLimit({ limit: 180, windowMs: 60_000, key: req => req.ip, message: 'Too many article checks. Try again shortly.' }), async (req, res) => {
+  const title = req.query.title;
+  if (typeof title !== 'string' || !title.trim() || title.length > 300) return res.status(400).json({ error: 'Invalid article title' });
+  res.set('Cache-Control', 'no-store');
+  try { res.json(await require('../lib/articleAccess').articleAccess(title)); }
+  catch { res.status(503).json({ error: 'Could not check this article. Try again.' }); }
+});
+
 router.get('/account-deletion', requireAuth, (req, res) => {
   res.json(summary(getDeletionStore().get(req.userId)));
 });
@@ -291,7 +299,7 @@ router.post('/higherlower/:gameId/next', async (req, res) => {
   }
 });
 
-const REPORT_TYPES = ['pair', 'bug', 'other'];
+const REPORT_TYPES = ['pair', 'bug', 'other', 'article'];
 
 const reportLimit = rateLimit({
   limit: 10,
@@ -305,16 +313,17 @@ router.post('/report', optionalAuth, reportLimit, (req, res) => {
   if (!REPORT_TYPES.includes(type)) {
     return res.status(400).json({ error: 'Invalid report type' });
   }
-  if (!message || !message.trim()) {
+  if (typeof message !== 'string' || !message.trim()) {
     return res.status(400).json({ error: 'Message is required' });
   }
   if (message.length > 2000) {
     return res.status(400).json({ error: 'Message too long' });
   }
+  if (type === 'article' && (typeof context?.articleTitle !== 'string' || !context.articleTitle.trim() || context.articleTitle.length > 300)) return res.status(400).json({ error: 'Article title is required' });
   saveReport({ type, message, context, userId: req.userId || null });
   const details = context && typeof context === 'object' ? Object.entries(context).slice(0, 8) : [];
-  sendAlert(type === 'pair' ? 'reports' : 'bugs', {
-    title: { pair: 'Pair report', bug: 'Bug report', other: 'Feedback' }[type],
+  sendAlert(['pair', 'article'].includes(type) ? 'reports' : 'bugs', {
+    title: { pair: 'Pair report', bug: 'Bug report', other: 'Feedback', article: 'Article report' }[type],
     description: message.slice(0, 2000),
     fields: [
       { name: 'From', value: req.userId || 'Signed out' },

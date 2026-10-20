@@ -4,10 +4,14 @@ import { createServer } from 'vite';
 import react from '@vitejs/plugin-react';
 import puppeteer from 'puppeteer-core';
 import { fileURLToPath } from 'node:url';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 
-test('chat blocks persist across reconnects, unblock, and report with retry', async () => {
+test('chat requires explicit rules acceptance, persists blocks and reports with retry', async () => {
+  const cache = mkdtempSync(join(tmpdir(), 'wikiracr-chat-test-'));
   const server = await createServer({
-    configFile: false, root: fileURLToPath(new URL('..', import.meta.url)),
+    configFile: false, cacheDir: cache, root: fileURLToPath(new URL('..', import.meta.url)),
     server: { host: '127.0.0.1', port: 0 },
     plugins: [{
       name: 'chat-test', enforce: 'pre',
@@ -24,8 +28,8 @@ import ChatPanel from '/src/components/ChatPanel.jsx';
 import '/src/index.css';
 const root = createRoot(document.getElementById('root'));
 window.messages = [{id:'message1',userId:'alice',socketId:'old',username:'Alice',text:'Hello there'}];
-window.reports = []; window.failReport = true;
-window.draw = () => root.render(React.createElement(ChatPanel,{messages:[...window.messages],mySocketId:'me',onSend:()=>{},onReport:async(id,reason)=>{if(window.failReport)throw new Error('Try again');window.reports.push({id,reason});}}));
+window.reports = []; window.sent = []; window.failReport = true;
+window.draw = () => root.render(React.createElement(ChatPanel,{messages:[...window.messages],mySocketId:'me',onSend:(text,termsVersion)=>window.sent.push({text,termsVersion}),onReport:async(id,reason)=>{if(window.failReport)throw new Error('Try again');window.reports.push({id,reason});}}));
 window.draw();</script>`));
         });
       },
@@ -52,6 +56,15 @@ window.draw();</script>`));
     };
     await page.goto(url);
     await click('Chat');
+    assert.equal(await page.$('input[placeholder="Message..."]'), null);
+    assert.equal(await page.$eval('button[type="submit"]', button => button.disabled), true);
+    assert.ok(await page.$('a[href="https://wikiracr.com/terms"]'));
+    await page.click('input[type="checkbox"]');
+    await click('Enable chat');
+    await page.waitForSelector('input[placeholder="Message..."]');
+    await page.type('input[placeholder="Message..."]', 'Hello');
+    await click('Send');
+    assert.deepEqual(await page.evaluate(() => window.sent), [{text:'Hello',termsVersion:'2026-10-20'}]);
     await click('Block');
     await page.waitForFunction(() => !document.body.textContent.includes('Hello there'));
     await page.reload();
@@ -64,6 +77,7 @@ window.draw();</script>`));
     await click('Blocked (0)');
     await page.waitForFunction(() => document.body.textContent.includes('Still blocked'));
     await click('Report');
+    assert.equal(await page.evaluate(() => document.body.textContent.includes('private staff channel on Discord')), true);
     await click('Send report');
     await page.waitForFunction(() => document.body.textContent.includes('Try again'));
     await page.evaluate(() => { window.failReport = false; });
@@ -72,5 +86,5 @@ window.draw();</script>`));
     assert.deepEqual(await page.evaluate(() => window.reports), [{ id: 'message1', reason: 'Harassment' }]);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
     assert.deepEqual(errors, []);
-  } finally { await browser?.close(); await server.close(); }
+  } finally { await browser?.close(); await server.close(); assert.ok(cache.startsWith(join(tmpdir(), 'wikiracr-chat-test-'))); rmSync(cache, { recursive: true, force: true }); }
 });

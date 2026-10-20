@@ -10,7 +10,7 @@ function setupChat(io, socket, { getRoom, saveReport, sendAlert }) {
 
   socket.on('chat-message', (payload = {}) => {
     const room = getRoom(socket.id);
-    if (!room || typeof payload?.text !== 'string') return;
+    if (!room || typeof payload?.text !== 'string' || payload.termsVersion !== '2026-10-20') return;
     const text = payload.text.trim().slice(0, 200);
     const at = Date.now();
     if (!text || at - lastMessageAt < 750) return;

@@ -2,6 +2,8 @@ import { useState, useRef, useEffect, useMemo } from 'react';
 import { useUser } from '../lib/auth';
 import styles from './ChatPanel.module.css';
 
+const CHAT_RULES_VERSION = '2026-10-20';
+
 export default function ChatPanel({ messages, mySocketId, onSend, onReport }) {
   const { user } = useUser();
   const storageKey = `wikiracrBlockedChat:${user?.id || 'guest'}`;
@@ -20,6 +22,11 @@ function Chat({ messages, mySocketId, onSend, onReport, storageKey, viewerId }) 
   const [reason, setReason] = useState('Harassment');
   const [sending, setSending] = useState(false);
   const [notice, setNotice] = useState('');
+  const [rulesAccepted, setRulesAccepted] = useState(() => {
+    try { return localStorage.getItem(`${storageKey}:rules`) === CHAT_RULES_VERSION; }
+    catch { return false; }
+  });
+  const [agree, setAgree] = useState(false);
   const identity = message => message.userId ? `account:${message.userId}` : `guest:${message.socketId}`;
   const isMine = message => message.socketId === mySocketId || (viewerId && message.userId === viewerId);
   const visible = useMemo(() => messages.filter(message => !blocked[identity(message)]), [messages, blocked]);
@@ -69,8 +76,8 @@ function Chat({ messages, mySocketId, onSend, onReport, storageKey, viewerId }) 
   function submit(e) {
     e.preventDefault();
     const text = draft.trim();
-    if (!text) return;
-    onSend(text);
+    if (!text || !rulesAccepted) return;
+    onSend(text, CHAT_RULES_VERSION);
     setDraft('');
   }
 
@@ -91,6 +98,18 @@ function Chat({ messages, mySocketId, onSend, onReport, storageKey, viewerId }) 
         <button className={styles.closeBtn} onClick={() => setOpen(false)} aria-label="Close chat">&times;</button>
       </div>
       <div className={styles.list} ref={listRef}>
+        {!rulesAccepted ? <form className={styles.reportForm} onSubmit={event => {
+          event.preventDefault();
+          if (!agree) return;
+          try { localStorage.setItem(`${storageKey}:rules`, CHAT_RULES_VERSION); } catch {}
+          setRulesAccepted(true);
+        }}>
+          <strong>Before using chat</strong>
+          <p>Other players can read what you send. Keep your real name, contact details, passwords and location private. Do not post harassment, threats, hate, sexual content or spam.</p>
+          <p>Use Block to hide a player's messages and Report to ask WikiRacr to review abuse. You can turn chat off in Settings.</p>
+          <label><input type="checkbox" checked={agree} onChange={event => setAgree(event.target.checked)} /> I agree to the <a href="https://wikiracr.com/terms" target="_blank" rel="noopener noreferrer">Terms</a> and have read the <a href="https://wikiracr.com/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>.</label>
+          <button className={styles.action} type="submit" disabled={!agree}>Enable chat</button>
+        </form> : <>
         {notice && <p className={styles.notice} role="status">{notice}</p>}
         {managing ? <>
           <p className={styles.notice}>Blocked players' messages are hidden on this device. Guest blocks last until they reconnect.</p>
@@ -105,7 +124,7 @@ function Chat({ messages, mySocketId, onSend, onReport, storageKey, viewerId }) 
           <select id="chat-report-reason" value={reason} onChange={event => setReason(event.target.value)}>
             {['Harassment', 'Hate or threats', 'Sexual content', 'Spam', 'Other'].map(value => <option key={value}>{value}</option>)}
           </select>
-          <p>The message and player details will be sent to WikiRacr for review.</p>
+          <p>The message, player details and reason will be saved by WikiRacr and sent to its private staff channel on Discord for review.</p>
           <div className={styles.actions}>
             <button className={styles.action} type="submit" disabled={sending}>{sending ? 'Sending...' : 'Send report'}</button>
             <button className={styles.action} type="button" disabled={sending} onClick={() => setReporting(null)}>Cancel</button>
@@ -123,8 +142,9 @@ function Chat({ messages, mySocketId, onSend, onReport, storageKey, viewerId }) 
           </div>
         ))}
         </>}
+        </>}
       </div>
-      <form className={styles.inputRow} onSubmit={submit}>
+      {rulesAccepted && <form className={styles.inputRow} onSubmit={submit}>
         <input
           className={styles.input}
           value={draft}
@@ -133,7 +153,7 @@ function Chat({ messages, mySocketId, onSend, onReport, storageKey, viewerId }) 
           maxLength={200}
         />
         <button className={styles.sendBtn} type="submit" disabled={!draft.trim()}>Send</button>
-      </form>
+      </form>}
     </div>
   );
 }

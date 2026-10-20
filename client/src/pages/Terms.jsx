@@ -25,7 +25,7 @@ export default function Terms() {
           <section className={styles.hero}>
             <p className={styles.kicker}>TERMS OF SERVICE</p>
             <h1>Terms of Service</h1>
-            <p className={styles.updated}>Last updated: October 18, 2026</p>
+            <p className={styles.updated}>Last updated: October 20, 2026</p>
           </section>
 
 
@@ -85,6 +85,7 @@ export default function Terms() {
 
             <section className={styles.section}>
               <h2>6. Multiplayer chat and player behavior</h2>
+              <p>Before sending chat messages, you must explicitly accept the chat rules and these terms. The chat panel reminds you to protect your personal information and explains how to block and report abuse.</p>
               <p>Use Block beside a chat message to hide that player's messages on this device. Manage blocked players from the chat panel. Guest blocks last until the guest reconnects; blocks do not prevent matchmaking. Use Report beside a message to send the message, player details and your selected reason to WikiRacr for review.</p>
               <p>
                 Multiplayer chat is for game-related conversation and light banter, not harassment. Do not post threats, hateful content, sexual content, spam, private information, impersonation, or anything illegal.
@@ -99,6 +100,7 @@ export default function Terms() {
               <p>
                 WikiRacr includes reporting tools for bugs, bad article pairs, player behavior, and other issues. Reports may include the message you submit, game context, room or pair context, and account information when you are signed in.
               </p>
+              <p>Use Report article to flag Wikipedia content for moderator review. WikiRacr may block reviewed titles from article display, navigation and future race selection. Reporting an article does not automatically block it.</p>
               <p>
                 Moderation decisions are made at WikiRacr's discretion. Reports may not always result in action, and action may be taken without a detailed explanation when needed to protect the service or other players.
               </p>

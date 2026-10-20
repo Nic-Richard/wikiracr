@@ -19,7 +19,7 @@ function fixture() {
 
 test('reports preserve server evidence, ignore forged fields, and deduplicate', () => {
   const f = fixture(), sender = f.player('alice'), reporter = f.player('bob');
-  sender['chat-message']({ text: 'A message' });
+  sender['chat-message']({ text: 'A message', termsVersion: '2026-10-20' });
   const message = f.events[0];
   assert.equal(message.userId, 'user_alice');
   const payload = { messageId: message.id, reason: 'Harassment', text: 'forged', userId: 'forged' };
@@ -36,7 +36,7 @@ test('reports preserve server evidence, ignore forged fields, and deduplicate', 
 
 test('rejects own, missing, cross-room and invalid reports', () => {
   const f = fixture(), sender = f.player('alice'), reporter = f.player('bob');
-  sender['chat-message']({ text: 'A message' });
+  sender['chat-message']({ text: 'A message', termsVersion: '2026-10-20' });
   const payload = { messageId: f.events[0].id, reason: 'Spam' };
   const denied = value => assert.equal(value.ok, false);
   sender['report-chat'](payload, denied);
@@ -52,11 +52,20 @@ test('bounds messages, throttles spam and rejects malformed payloads', () => {
   f.room.recentChat = Array.from({ length: 100 }, (_, id) => ({ id }));
   sender['chat-message'](null);
   sender['chat-message']({ text: {} });
-  sender['chat-message']({ text: 'x'.repeat(300) });
-  sender['chat-message']({ text: 'too soon' });
+  sender['chat-message']({ text: 'x'.repeat(300), termsVersion: '2026-10-20' });
+  sender['chat-message']({ text: 'too soon', termsVersion: '2026-10-20' });
   assert.equal(f.events.length, 1);
   assert.equal(f.events[0].text.length, 200);
   assert.equal(f.room.recentChat.length, 100);
+});
+
+test('chat rejects missing or outdated rules acknowledgment', () => {
+  const f = fixture(), sender = f.player('alice');
+  sender['chat-message']({ text: 'No consent' });
+  sender['chat-message']({ text: 'Outdated', termsVersion: 'old' });
+  assert.equal(f.events.length, 0);
+  sender['chat-message']({ text: 'Accepted', termsVersion: '2026-10-20' });
+  assert.equal(f.events.length, 1);
 });
 
 test('limits reports and refuses to acknowledge failed storage', () => {

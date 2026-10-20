@@ -1,4 +1,5 @@
 import { appFetch } from '../lib/platform';
+import { checkArticle } from '../lib/articleSafety';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useUser, useAuth } from '../lib/auth';
@@ -22,7 +23,8 @@ function formatViews(n) {
 
 async function fetchSnapshot(title) {
   try {
-    const res = await appFetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`);
+    const allowedTitle = await checkArticle(title);
+    const res = await appFetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(allowedTitle)}`);
     if (!res.ok) return null;
     const data = await res.json();
     return {

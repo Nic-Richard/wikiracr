@@ -25,7 +25,7 @@ export default function Privacy() {
           <section className={styles.hero}>
             <p className={styles.kicker}>PRIVACY POLICY</p>
             <h1>Privacy Policy</h1>
-            <p className={styles.updated}>Last updated: October 18, 2026</p>
+            <p className={styles.updated}>Last updated: October 20, 2026</p>
             <p className={styles.intro}>
               This policy explains what WikiRacr collects, how it is used, what may be visible to other players, and where third-party services fit in. WikiRacr is operated by Nic Richard in New Brunswick, Canada.
             </p>
@@ -43,6 +43,7 @@ export default function Privacy() {
                 <li>reports submitted through the report tool, including report type, message, context, account ID when signed in, and submission time;</li>
                 <li>subscription status and billing identifiers needed to connect your account to Stripe or Google Play, including Stripe customer/subscription IDs, Google Play purchase tokens, order IDs, expiry and a pseudonymous account identifier;</li>
                 <li>basic technical data that may appear in server or hosting logs, such as IP address, request path, browser information, timestamps, errors, and security-related events.</li>
+                <li>Clerk client and session identifiers, device/browser information, and approximate city/country derived by Clerk from your IP address for session and account security; WikiRacr does not request precise device location.</li>
               </ul>
             </section>
 
@@ -101,10 +102,10 @@ export default function Privacy() {
             <section className={styles.section}>
               <h2>7. Cookies, sessions, and local settings</h2>
               <p>
-                WikiRacr and Clerk may use cookies or similar browser storage needed for authentication, sessions, security, and basic operation. WikiRacr also stores some local preferences on your device, such as motion effects, game audio, chat visibility, and game zoom settings.
+                WikiRacr and Clerk may use cookies or similar browser storage needed for authentication, sessions, security, and basic operation. WikiRacr also stores some local preferences on your device, such as motion effects, game audio, chat visibility, blocked players, acceptance of chat rules, and game zoom settings.
               </p>
               <p>
-                WikiRacr uses TraceTray to understand how people use the site. It records things like cursor movement, clicks, scrolling, and which pages are visited, and stores a random visitor ID in your browser so visits can be grouped together. It doesn't record what you type, form entries, passwords, or payment details, and it isn't used for advertising. See <a href="https://tracetray.com/privacy.html">TraceTray's privacy policy</a> for details.
+                The WikiRacr website uses TraceTray to understand how people use the site. It records things like cursor movement, clicks, scrolling, and which pages are visited, and stores a random visitor ID in your browser so visits can be grouped together. The packaged Android app does not load this website tracker. It doesn't record what you type, form entries, passwords, or payment details, and it isn't used for advertising. See <a href="https://tracetray.com/privacy.html">TraceTray's privacy policy</a> for details.
               </p>
               <p>
                 WikiRacr does not include advertising or newsletter tracking.

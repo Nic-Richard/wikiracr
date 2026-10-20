@@ -115,6 +115,7 @@ function routes({ completed = false, elapsedMs = 10_000 } = {}) {
     saveDailyProgress: (...args) => { saved.progress = args; },
     upsertDailyScore: score => { saved.score = score; return { changes: 1 }; },
     clearDailyProgress() {},
+    saveReport: report => { saved.report = report; },
   };
   loadModule('../src/routes/api.js', {
     express: { Router: () => ({
@@ -125,7 +126,7 @@ function routes({ completed = false, elapsedMs = 10_000 } = {}) {
     stripe: () => ({}),
     '../lib/clerk': {},
     '../lib/logger': { error() {} },
-    '../lib/alerts': { sendAlert() {} },
+    '../lib/alerts': { sendAlert: (channel, alert) => { saved.alert = { channel, alert }; } },
     '../lib/rateLimit': { rateLimit: () => () => {} },
     '../middleware/auth': {},
     '../game/GameManager': {},
@@ -180,4 +181,17 @@ test('daily clocks and progress reject malformed requests and browser time', asy
   const res = await request('POST', '/daily/progress', { navHist: ['Alpha'], histIdx: 0, clicks: 0, elapsedMs: 1 });
   assert.equal(res.statusCode, 200);
   assert.equal(saved.progress[5], 10_000);
+});
+
+test('article reports require a title and route to moderation without blocking automatically', async () => {
+  const { request, saved } = routes();
+  assert.equal((await request('POST', '/report', { type: 'article', message: 'Review this' })).statusCode, 400);
+  assert.equal(saved.report, undefined);
+  assert.equal((await request('POST', '/report', { type: 'article', message: {}, context: { articleTitle: 'Alpha' } })).statusCode, 400);
+  const response = await request('POST', '/report', { type: 'article', message: 'Review this', context: { articleTitle: 'Alpha', page: 'article' } });
+  assert.equal(response.body.ok, true);
+  assert.equal(saved.report.context.articleTitle, 'Alpha');
+  assert.equal(saved.report.userId, 'u1');
+  assert.equal(saved.alert.channel, 'reports');
+  assert.equal(saved.alert.alert.title, 'Article report');
 });

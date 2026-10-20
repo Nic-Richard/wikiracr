@@ -8,6 +8,8 @@ let db;
 let appDb;
 let deletionStore;
 let playStore;
+let articlePolicy;
+const { createArticlePolicy, allowedPair, articleKey } = require('./lib/articlePolicy');
 let higherLowerTitles = [];
 
 const TIER_NAMES = ['easy', 'medium', 'hard', 'expert'];
@@ -122,6 +124,8 @@ function initDb() {
     );
   `);
 
+  articlePolicy = createArticlePolicy(appDb);
+
   const dailyProgressCols = appDb.prepare('PRAGMA table_info(daily_progress)').all().map(c => c.name);
   if (!dailyProgressCols.includes('elapsed_ms')) {
     appDb.exec('ALTER TABLE daily_progress ADD COLUMN elapsed_ms INTEGER NOT NULL DEFAULT 0');
@@ -148,32 +152,42 @@ function loadHigherLowerArticles() {
 }
 
 function getHigherLowerArticles() {
-  return higherLowerTitles;
+  if (!articlePolicy?.size()) return higherLowerTitles;
+  const blocked = new Set(articlePolicy.list().map(entry => entry.title_key));
+  return higherLowerTitles.filter(title => !blocked.has(articleKey(title)));
+}
+
+function pickAllowed(statement, ...args) {
+  if (!articlePolicy?.size()) return statement.get(...args);
+  const blocked = new Set(articlePolicy.list().map(entry => entry.title_key));
+  const policy = { size: () => blocked.size, blocked: title => blocked.has(articleKey(title)) };
+  for (const pair of statement.iterate(...args)) if (allowedPair(pair, policy)) return pair;
+  return null;
 }
 
 function getPair(difficulty = 'random', pathLength = null, excludeId = null) {
 
   if (pathLength !== null) {
-    return db.prepare(
-      'SELECT * FROM pairs WHERE path_length = ? AND (? IS NULL OR id != ?) ORDER BY RANDOM() LIMIT 1'
-    ).get(pathLength, excludeId, excludeId);
+    return pickAllowed(db.prepare(
+      'SELECT * FROM pairs WHERE path_length = ? AND (? IS NULL OR id != ?) ORDER BY RANDOM()'
+    ), pathLength, excludeId, excludeId);
   }
 
   const tier = TIER_NAMES.includes(difficulty) ? difficulty : TIER_NAMES[Math.floor(Math.random() * TIER_NAMES.length)];
 
-  const pair = db.prepare(
-    'SELECT * FROM pairs WHERE tier = ? AND (? IS NULL OR id != ?) ORDER BY RANDOM() LIMIT 1'
-  ).get(tier, excludeId, excludeId);
+  const pair = pickAllowed(db.prepare(
+    'SELECT * FROM pairs WHERE tier = ? AND (? IS NULL OR id != ?) ORDER BY RANDOM()'
+  ), tier, excludeId, excludeId);
   if (pair) return pair;
 
   log.warn(`[db] no pairs tagged tier="${tier}" yet, falling back to full pool`);
-  return db.prepare('SELECT * FROM pairs WHERE ? IS NULL OR id != ? ORDER BY RANDOM() LIMIT 1').get(excludeId, excludeId);
+  return pickAllowed(db.prepare('SELECT * FROM pairs WHERE ? IS NULL OR id != ? ORDER BY RANDOM()'), excludeId, excludeId);
 }
 
 function getCustomPair(startTitle, endTitle) {
-  return db.prepare(
+  return allowedPair(db.prepare(
     'SELECT * FROM pairs WHERE start_title = ? AND end_title = ? LIMIT 1'
-  ).get(startTitle, endTitle);
+  ).get(startTitle, endTitle), articlePolicy);
 }
 
 function getDailyChallenge() {
@@ -186,7 +200,7 @@ function getDailyChallenge() {
       .run(today, pair.id);
     return pair;
   }
-  return db.prepare('SELECT * FROM pairs WHERE id = ?').get(row.pair_id);
+  return allowedPair(db.prepare('SELECT * FROM pairs WHERE id = ?').get(row.pair_id), articlePolicy);
 }
 
 function saveGameHistory(data) {
@@ -518,6 +532,7 @@ function saveReport(data) {
 }
 
 module.exports = {
+  getArticlePolicy: () => articlePolicy,
   getPlayStore: () => playStore,
   getDeletionStore: () => deletionStore,
   deleteAccountData: userId => appDb.transaction(() => {
