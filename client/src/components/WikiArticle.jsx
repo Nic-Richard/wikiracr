@@ -1,7 +1,6 @@
 import Arrow from './Arrow';
 import { appFetch } from '../lib/platform';
 import { checkArticle } from '../lib/articleSafety';
-import ReportButton from './ReportButton';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import styles from './WikiArticle.module.css';
 
@@ -296,10 +295,6 @@ export default function WikiArticle({ title, goalTitle, onLinkClick }) {
   const displayGoal  = goalTitle.replace(/_/g, ' ');
   const articleUrl = `https://en.wikipedia.org/wiki/${encodeURIComponent(title.replace(/ /g, '_'))}`;
 
-  const safetyControls = <div className={styles.safetyBar}>
-    <ReportButton key={title} context={{ articleTitle: title, page: 'article' }} label="Report article" openUp />
-  </div>;
-
   if (loading) {
     return (
       <div className={styles.state}>
@@ -311,10 +306,7 @@ export default function WikiArticle({ title, goalTitle, onLinkClick }) {
 
   if (error) {
     return (
-      <div className={styles.errorState}>
-        <div className={styles.state}><span className={styles.err}>{error}</span></div>
-        {safetyControls}
-      </div>
+      <div className={styles.state}><span className={styles.err}>{error}</span></div>
     );
   }
 
@@ -367,7 +359,6 @@ export default function WikiArticle({ title, goalTitle, onLinkClick }) {
         sandbox="allow-scripts"
         onLoad={applyArticleZoom}
       />
-      {safetyControls}
       <div className={styles.attribution} aria-label="Wikipedia attribution">
         <a href={articleUrl} target="_blank" rel="noreferrer">Wikipedia content</a>
         <span aria-hidden="true">·</span>

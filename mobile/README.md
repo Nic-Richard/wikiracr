@@ -34,7 +34,7 @@ Override `CHROME_PATH`, `ADB_PATH` or `ANDROID_SERIAL` as needed.
 
 - APK: `android/app/build/outputs/apk/debug/app-debug.apk`
 - Signed AAB: `android/app/build/outputs/bundle/release/app-release.aab`
-- Package: `com.wikiracr.app`; version `1.0`, code `5`, target SDK 36.
+- Package: `com.wikiracr.app`; version `1.0`, code `6`, target SDK 36.
 
 ## Signing and sign-in
 
@@ -63,8 +63,8 @@ See `../docs/PLAY_BILLING.md` for server setup and required purchase checks.
 - Check a real solo race, daily challenge and multiplayer room, including reconnect
   after backgrounding and Android Back. Fixture checks do not replace live checks.
 - Complete the Play listing, declarations, reviewer access and testing setup.
-  Build 4 is on Internal testing. Build 5 adds chat agreement, safety notices,
-  article reports and global moderation. It needs the matching article-policy API before rollout.
+  Build 5 is on Internal testing with chat agreement, article reports and global moderation.
+  Build 6 consolidates article reports into the existing report panel; it uses the deployed API.
 - Increment `versionCode` for each subsequent Play upload. No EAS build is needed.
 - After public launch, set `data-play-url` on the app-prompt script in
   `client/index.html` to `https://play.google.com/store/apps/details?id=com.wikiracr.app`.

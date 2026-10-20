@@ -5,10 +5,12 @@ import { NATIVE_APP } from '../lib/platform';
 import { useAuth } from '../lib/auth';
 import styles from './ReportButton.module.css';
 
-export default function ReportButton({ context = {}, openUp = false, label }) {
+export default function ReportButton({ context = {}, openUp = false }) {
   const { getToken, isSignedIn } = useAuth();
   const [open, setOpen]     = useState(false);
-  const [type, setType]     = useState(context.articleTitle ? 'article' : context.pairId ? 'pair' : 'bug');
+  const [reportContext, setReportContext] = useState(context);
+  const [type, setType]     = useState(context.pairId ? 'pair' : context.articleTitle ? 'article' : 'bug');
+  const articleTitle = reportContext.articleTitle || reportContext.currentArticle;
   const [message, setMessage] = useState('');
   const [state, setState]   = useState('idle');
   const boxRef = useRef(null);
@@ -30,6 +32,11 @@ export default function ReportButton({ context = {}, openUp = false, label }) {
   }, [open]);
 
   function toggle() {
+    if (!open) {
+      setReportContext(context);
+      if (type === 'article' && !(context.articleTitle || context.currentArticle)) setType(context.pairId ? 'pair' : 'bug');
+      if (type === 'pair' && !context.pairId) setType('bug');
+    }
     setOpen(o => !o);
     setState('idle');
   }
@@ -46,7 +53,7 @@ export default function ReportButton({ context = {}, openUp = false, label }) {
       const res = await appFetch('/api/report', {
         method: 'POST',
         headers,
-        body: JSON.stringify({ type, message, context }),
+        body: JSON.stringify({ type, message, context: type === 'article' ? { ...reportContext, articleTitle } : reportContext }),
       });
       if (!res.ok) throw new Error('failed');
       setState('sent');
@@ -65,16 +72,17 @@ export default function ReportButton({ context = {}, openUp = false, label }) {
             <>
               <div className={styles.heading}><p className={styles.label}>REPORT A PROBLEM</p>{NATIVE_APP && <button className={styles.close} onClick={() => setOpen(false)} aria-label="Close report">&#215;</button>}</div>
               <div className={styles.typeRow}>
-                {context.articleTitle && <button className={`${styles.typeBtn} ${type === 'article' ? styles.typeBtnSel : ''}`} onClick={() => setType('article')}>Article</button>}
-                {context.pairId && (
+                {articleTitle && <button className={`${styles.typeBtn} ${type === 'article' ? styles.typeBtnSel : ''}`} onClick={() => setType('article')}>Article</button>}
+                {reportContext.pairId && (
                   <button className={`${styles.typeBtn} ${type === 'pair' ? styles.typeBtnSel : ''}`} onClick={() => setType('pair')}>Bad pair</button>
                 )}
                 <button className={`${styles.typeBtn} ${type === 'bug' ? styles.typeBtnSel : ''}`} onClick={() => setType('bug')}>Bug</button>
                 <button className={`${styles.typeBtn} ${type === 'other' ? styles.typeBtnSel : ''}`} onClick={() => setType('other')}>Other</button>
               </div>
+              {type === 'article' && <p className={styles.articleTitle}>Article: {articleTitle.replace(/_/g, ' ')}</p>}
               <textarea
                 className={styles.textarea}
-                placeholder={type === 'pair' ? "What's wrong with this pair? (required)" : 'What happened? (required)'}
+                placeholder={type === 'pair' ? "What's wrong with this pair? (required)" : type === 'article' ? "What's wrong with this article? (required)" : 'What happened? (required)'}
                 value={message}
                 onChange={e => setMessage(e.target.value)}
                 maxLength={2000}
@@ -92,8 +100,8 @@ export default function ReportButton({ context = {}, openUp = false, label }) {
   );
   return (
     <div className={styles.wrap} ref={boxRef}>
-      <button className={label ? styles.labelToggle : styles.toggle} onClick={toggle} title={label || 'Report a problem'} aria-label={label || 'Report a problem'} aria-expanded={open}>
-        {label || <span className={styles.badge}>!</span>}
+      <button className={styles.toggle} onClick={toggle} title="Report a problem" aria-label="Report a problem" aria-expanded={open}>
+        <span className={styles.badge}>!</span>
       </button>
       {open && (NATIVE_APP ? createPortal(<dialog ref={dialogRef} className={styles.nativeDialog} data-native-report aria-label="Report a problem" onCancel={() => setOpen(false)} onClick={event => { if (event.target === event.currentTarget) setOpen(false); }}>{panel}</dialog>, document.body) : panel)}
     </div>

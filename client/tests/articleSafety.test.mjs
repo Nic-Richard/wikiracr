@@ -29,8 +29,8 @@ test('article reports preserve context without hiding content; global blocks pre
       server.middlewares.use('/article-test', async (_req, res) => {
         res.setHeader('Content-Type', 'text/html');
         res.end(await server.transformIndexHtml('/article-test', `<div id="root" style="height:90vh"></div><script type="module">
-import React from 'react';import {createRoot} from 'react-dom/client';import WikiArticle from '/src/components/WikiArticle.jsx';import '/src/index.css';
-const root=createRoot(document.getElementById('root'));window.draw=(title='Alpha')=>root.render(React.createElement(WikiArticle,{title,goalTitle:'Charlie',onLinkClick:()=>{}}));window.draw();</script>`));
+import React from 'react';import {createRoot} from 'react-dom/client';import WikiArticle from '/src/components/WikiArticle.jsx';import ReportButton from '/src/components/ReportButton.jsx';import '/src/index.css';
+const root=createRoot(document.getElementById('root'));window.draw=(title='Alpha')=>root.render(React.createElement(React.Fragment,null,React.createElement(ReportButton,{context:{page:'game',pairId:7,currentArticle:title,startTitle:'Alpha',endTitle:'Charlie'}}),React.createElement(WikiArticle,{title,goalTitle:'Charlie',onLinkClick:()=>{}})));window.draw();</script>`));
       });
     },
   }, react()] });
@@ -63,12 +63,23 @@ const root=createRoot(document.getElementById('root'));window.draw=(title='Alpha
     };
     await page.goto(url);
     await page.waitForSelector('iframe');
-    await click('Report article');
+    assert.equal(await page.$$eval('button[aria-label="Report a problem"]', buttons => buttons.length), 1);
+    assert.equal(await page.evaluate(() => document.body.textContent.includes('Report article')), false);
+    await page.click('button[aria-label="Report a problem"]');
+    await page.waitForSelector('textarea');
+    assert.equal(await page.evaluate(() => [...document.querySelectorAll('button')].filter(button => ['Article', 'Bad pair', 'Bug', 'Other'].includes(button.textContent)).length), 4);
+    assert.match(await page.$eval('textarea', element => element.placeholder), /pair/);
+    await click('Article');
+    await page.evaluate(() => window.draw('Bravo'));
+    await page.waitForFunction(() => document.querySelector('iframe')?.title === 'Bravo');
+    assert.ok(await page.evaluate(() => document.body.textContent.includes('Article: Alpha')));
     await page.type('textarea', 'Unsuitable article');
     await click('SEND REPORT');
     await page.waitForFunction(() => document.body.textContent.includes('Thanks, got it.'));
     assert.equal(reports[0].type, 'article');
     assert.equal(reports[0].context.articleTitle, 'Alpha');
+    assert.equal(reports[0].context.currentArticle, 'Alpha');
+    assert.equal(reports[0].context.pairId, 7);
     assert.ok(await page.$('iframe'));
     assert.equal(await page.evaluate(() => [...document.querySelectorAll('button')].some(button => button.textContent === 'Hide article')), false);
     assert.equal(await page.evaluate(() => localStorage.getItem('wikiracr-hidden-articles')), null);
@@ -78,6 +89,13 @@ const root=createRoot(document.getElementById('root'));window.draw=(title='Alpha
     await page.waitForFunction(() => document.body.textContent.includes('This article is unavailable'));
     assert.equal(wiki.some(path => path.endsWith('/Blocked')), false);
     assert.equal(await page.$('iframe'), null);
+    await page.click('button[aria-label="Report a problem"]');
+    await click('Article');
+    assert.ok(await page.evaluate(() => document.body.textContent.includes('Article: Blocked')));
+    await page.reload();
+    await page.evaluate(() => window.draw(''));
+    await page.click('button[aria-label="Report a problem"]');
+    assert.equal(await page.evaluate(() => [...document.querySelectorAll('button')].some(button => button.textContent === 'Article')), false);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
     assert.deepEqual(errors, []);
   } finally { await browser?.close(); await server.close(); assert.ok(cache.startsWith(join(tmpdir(), 'wikiracr-article-test-'))); rmSync(cache, { recursive: true, force: true }); }

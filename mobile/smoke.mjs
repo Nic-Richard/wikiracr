@@ -105,6 +105,13 @@ try {
   await page.waitForSelector('[data-menu-panel="solo"]');
   await page.$$eval('button', buttons => buttons.find(button => button.textContent.startsWith('START ')).click());
   await page.waitForSelector('iframe', { timeout: 16000 });
+  assert.equal(await page.$$eval('button[aria-label="Report a problem"]', buttons => buttons.length), 1);
+  assert.equal(await page.evaluate(() => document.body.textContent.includes('Report article')), false);
+  await page.click('button[aria-label="Report a problem"]');
+  await page.waitForSelector('dialog[open]');
+  await page.$$eval('dialog button', buttons => buttons.find(button => button.textContent === 'Article').click());
+  assert(await page.$eval('dialog', element => element.textContent.includes('Article: Alpha')), 'Existing report panel must identify the current article');
+  await page.click('button[aria-label="Close report"]');
   const frameElement = await page.$('iframe'), frame = await frameElement.contentFrame();
   await frame.waitForSelector('a');
   assert.equal(await page.evaluate(() => window.__articleScriptRan), undefined, 'Wikipedia cannot execute scripts in the app');
