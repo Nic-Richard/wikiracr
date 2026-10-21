@@ -9,6 +9,7 @@ let appDb;
 let deletionStore;
 let playStore;
 let articlePolicy;
+let reportModeration;
 const { createArticlePolicy, allowedPair, articleKey } = require('./lib/articlePolicy');
 let higherLowerTitles = [];
 
@@ -125,6 +126,7 @@ function initDb() {
   `);
 
   articlePolicy = createArticlePolicy(appDb);
+  reportModeration = require("./lib/reportModeration").createReportModeration(appDb, articlePolicy);
 
   const dailyProgressCols = appDb.prepare('PRAGMA table_info(daily_progress)').all().map(c => c.name);
   if (!dailyProgressCols.includes('elapsed_ms')) {
@@ -525,14 +527,15 @@ function upsertHigherLowerStreak(data) {
 
 function saveReport(data) {
   if (data.userId && deletionStore.get(data.userId)) return;
-  appDb.prepare(`
+  return Number(appDb.prepare(`
     INSERT INTO reports (type, message, context, user_id, created_at)
     VALUES (?, ?, ?, ?, ?)
-  `).run(data.type, data.message || null, JSON.stringify(data.context || {}), data.userId || null, Date.now());
+  `).run(data.type, data.message || null, JSON.stringify(data.context || {}), data.userId || null, Date.now()).lastInsertRowid);
 }
 
 module.exports = {
   getArticlePolicy: () => articlePolicy,
+  moderateReport: data => reportModeration(data),
   getPlayStore: () => playStore,
   getDeletionStore: () => deletionStore,
   deleteAccountData: userId => appDb.transaction(() => {

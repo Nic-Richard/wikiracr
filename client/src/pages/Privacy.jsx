@@ -92,7 +92,7 @@ export default function Privacy() {
             <section className={styles.section}>
               <h2>6. Third-party providers</h2>
               <p>
-                WikiRacr depends on third-party providers to operate the service. This includes Clerk for authentication, Stripe and Google Play for payments and billing, TraceTray for analytics, Discord for private staff notifications (report text, Pro payment events and error details, sent to a channel only WikiRacr's operator can read), Wikipedia and Wikimedia services for article content and link data, and hosting or server infrastructure for running the website and API.
+                WikiRacr depends on third-party providers to operate the service. This includes Clerk for authentication, Stripe and Google Play for payments and billing, TraceTray for analytics, Discord for private staff notifications (report text, Pro payment events and error details, sent to a channel WikiRacr's operator and authorized moderators can read), Wikipedia and Wikimedia services for article content and link data, and hosting or server infrastructure for running the website and API.
               </p>
               <p>
                 These providers may process information according to their own terms and privacy policies. WikiRacr does not control Wikipedia article content, Wikimedia availability, Clerk authentication systems, Stripe billing systems, or hosting provider logs.

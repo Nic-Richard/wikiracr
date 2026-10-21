@@ -43,6 +43,8 @@ app.use(cors({
   credentials: true,
 }));
 
+app.post('/api/moderation/discord', express.raw({ type: 'application/json', limit: '64kb' }), require('./lib/moderationAuth').actionHandler(data => require('./db').moderateReport(data)));
+
 app.use(['/api/stripe/webhook', '/api/clerk/webhook'], express.raw({ type: 'application/json' }));
 
 app.use((req, res, next) => {

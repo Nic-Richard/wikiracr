@@ -115,7 +115,7 @@ function routes({ completed = false, elapsedMs = 10_000 } = {}) {
     saveDailyProgress: (...args) => { saved.progress = args; },
     upsertDailyScore: score => { saved.score = score; return { changes: 1 }; },
     clearDailyProgress() {},
-    saveReport: report => { saved.report = report; },
+    saveReport: report => { saved.report = report; return 1; },
   };
   loadModule('../src/routes/api.js', {
     express: { Router: () => ({

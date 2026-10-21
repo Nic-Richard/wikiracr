@@ -320,12 +320,14 @@ router.post('/report', optionalAuth, reportLimit, (req, res) => {
     return res.status(400).json({ error: 'Message too long' });
   }
   if (type === 'article' && (typeof context?.articleTitle !== 'string' || !context.articleTitle.trim() || context.articleTitle.length > 300)) return res.status(400).json({ error: 'Article title is required' });
-  saveReport({ type, message, context, userId: req.userId || null });
+  const reportId = saveReport({ type, message, context, userId: req.userId || null });
+  if (!reportId) return res.status(410).json({ error: 'Account deletion is in progress' });
   const details = context && typeof context === 'object' ? Object.entries(context).slice(0, 8) : [];
   sendAlert(['pair', 'article'].includes(type) ? 'reports' : 'bugs', {
     title: { pair: 'Pair report', bug: 'Bug report', other: 'Feedback', article: 'Article report' }[type],
     description: message.slice(0, 2000),
     fields: [
+      { name: 'Report', value: String(reportId) },
       { name: 'From', value: req.userId || 'Signed out' },
       ...details.map(([name, value]) => ({ name, value: JSON.stringify(value).slice(0, 300) })),
     ],

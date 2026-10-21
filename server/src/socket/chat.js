@@ -33,16 +33,18 @@ function setupChat(io, socket, { getRoom, saveReport, sendAlert }) {
     if (Date.now() - reportWindow >= 60 * 60 * 1000) { reports = 0; reportWindow = Date.now(); }
     if (reports >= 10) return reply({ ok: false, error: 'Too many reports. Try again later.' });
     const context = { room: room.code, messageId: message.id, reportedUserId: message.userId, reportedSocketId: message.socketId, username: message.username, text: message.text, at: message.at };
+    let reportId;
     try {
-      saveReport({ type: 'player', message: payload.reason, context, userId: socket.user.userId || null });
+      reportId = saveReport({ type: 'player', message: payload.reason, context, userId: socket.user.userId || null });
     } catch {
       return reply({ ok: false, error: 'Could not save the report. Try again.' });
     }
+    if (!reportId) return reply({ ok: false, error: 'Account deletion is in progress.' });
     reports += 1;
     reported.add(message.id);
     sendAlert('reports', {
       title: 'Player report', description: payload.reason,
-      fields: [{ name: 'From', value: socket.user.userId || 'Guest' }, ...Object.entries(context).map(([name, value]) => ({ name, value: String(value ?? 'Guest').slice(0, 300) }))],
+      fields: [{ name: 'Report', value: String(reportId) }, { name: 'From', value: socket.user.userId || 'Guest' }, ...Object.entries(context).map(([name, value]) => ({ name, value: String(value ?? 'Guest').slice(0, 300) }))],
     });
     reply({ ok: true });
   });
