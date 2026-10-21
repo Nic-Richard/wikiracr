@@ -3,18 +3,21 @@ const assert = require('node:assert/strict');
 const { setupChat } = require('../src/socket/chat');
 
 function fixture() {
-  const room = { code: 'TEST' }, saved = [], alerts = [], events = [];
-  const rooms = new Map();
-  function player(id) {
+  const room = { code: 'TEST' }, saved = [], alerts = [], events = [], received = {}, banned = new Set();
+  const rooms = new Map(), sockets = new Map([['observer', { user: { userId: 'user_observer' }, emit: (_event, message) => events.push(message) }]]);
+  const io = { sockets: { sockets, adapter: { rooms: new Map([['TEST', new Set(['observer'])]]) } } };
+  function player(id, user = { userId: `user_${id}`, username: id }) {
     const handlers = {};
-    const socket = { id, user: { userId: `user_${id}`, username: id }, on: (event, fn) => { handlers[event] = fn; } };
+    const socket = { id, user, on: (event, fn) => { handlers[event] = fn; }, emit: (_event, message) => (received[id] ||= []).push(message) };
     rooms.set(id, room);
-    setupChat({ to: () => ({ emit: (event, message) => events.push(message) }) }, socket, {
-      getRoom: id => rooms.get(id), saveReport: report => saved.push(report), sendAlert: (...args) => alerts.push(args),
+    sockets.set(id, socket);
+    io.sockets.adapter.rooms.get('TEST').add(id);
+    setupChat(io, socket, {
+      getRoom: id => rooms.get(id), saveReport: report => saved.push(report), sendAlert: (...args) => alerts.push(args), chatBanned: userId => banned.has(userId),
     });
     return handlers;
   }
-  return { room, rooms, saved, alerts, events, player };
+  return { room, rooms, saved, alerts, events, received, banned, player };
 }
 
 test('reports preserve server evidence, ignore forged fields, and deduplicate', () => {
@@ -76,8 +79,27 @@ test('limits reports and refuses to acknowledge failed storage', () => {
   }
   assert.equal(f.saved.length, 10);
   const handlers = {};
-  setupChat({}, { id: 'charlie', user: {}, on: (event, fn) => { handlers[event] = fn; } }, {
+  setupChat({}, { id: 'charlie', user: { userId: 'user_charlie' }, on: (event, fn) => { handlers[event] = fn; } }, {
     getRoom: () => f.room, saveReport: () => { throw new Error('Disk unavailable'); }, sendAlert: () => assert.fail('Do not alert before saving'),
   });
   handlers['report-chat']({ messageId: '0', reason: 'Spam' }, result => assert.equal(result.ok, false));
+});
+
+test('guests cannot chat, read chat or report, and banned players cannot send', () => {
+  const f = fixture(), guest = f.player('guest', { userId: null, username: 'Guest' }), alice = f.player('alice');
+  const replies = [];
+  guest['chat-message']({ text: 'Hello', termsVersion: '2026-10-20' }, value => replies.push(value));
+  assert.equal(replies[0].ok, false);
+  alice['chat-message']({ text: 'Hi', termsVersion: '2026-10-20' }, value => replies.push(value));
+  assert.equal(replies[1].ok, true);
+  assert.equal(f.events.length, 1);
+  assert.equal(f.received.guest, undefined);
+  guest['report-chat']({ messageId: f.events[0].id, reason: 'Spam' }, value => replies.push(value));
+  assert.equal(replies[2].ok, false);
+  assert.equal(f.saved.length, 0);
+  f.banned.add('user_bob');
+  const bob = f.player('bob');
+  bob['chat-message']({ text: 'Banned', termsVersion: '2026-10-20' }, value => replies.push(value));
+  assert.match(replies[3].error, /turned off/);
+  assert.equal(f.events.length, 1);
 });

@@ -59,8 +59,6 @@ async function dealPair(game) {
     const a = randomTitle(pool, game.seen);
     const b = randomTitle(pool, new Set([...game.seen, a]));
     if (a === b) continue;
-    const access = await Promise.all([a, b].map(title => require('../lib/articleAccess').articleAccess(title)));
-    if (access.some(result => !result.allowed)) continue;
     const [viewsA, viewsB] = await Promise.all([monthlyViews(a), monthlyViews(b)]);
     if (viewsA === null || viewsB === null || viewsA === viewsB) continue;
     game.seen.add(a).add(b);

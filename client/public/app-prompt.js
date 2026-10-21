@@ -15,11 +15,13 @@
   try { url = destination ? new URL(destination) : null; } catch { return; }
   if (url && (url.origin !== 'https://play.google.com' || url.pathname !== '/store/apps/details' || !url.searchParams.get('id'))) return;
   const storageKey = 'play-prompt-dismissed:' + (url?.searchParams.get('id') || name);
+  const hidePaths = script?.dataset.hidePaths ? new RegExp(script.dataset.hidePaths) : null;
+  let dismissed = false;
   try {
     if (!preview && Date.now() - Number(localStorage.getItem(storageKey) || 0) < 3 * 86400000) return;
   } catch {}
   const show = () => {
-    if (document.querySelector('[data-app-prompt]')) return;
+    if (dismissed || hidePaths?.test(location.pathname) || document.querySelector('[data-app-prompt]')) return;
     const host = document.createElement('aside');
     host.dataset.appPrompt = '';
     host.dataset.theme = script?.dataset.appTheme || document.documentElement.dataset.theme || '';
@@ -63,6 +65,7 @@
     if (url) link.href = url.href;
     else { link.setAttribute('aria-disabled', 'true'); link.tabIndex = -1; }
     const dismiss = () => {
+      dismissed = true;
       try { if (!preview) localStorage.setItem(storageKey, String(Date.now())); } catch {}
       host.remove();
     };
@@ -84,4 +87,9 @@
   };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', show, { once: true });
   else show();
+  // Chrome's Navigation API reports client-side route changes, so the banner leaves game screens.
+  window.navigation?.addEventListener('navigatesuccess', () => {
+    if (hidePaths?.test(location.pathname)) document.querySelector('[data-app-prompt]')?.remove();
+    else show();
+  });
 })();

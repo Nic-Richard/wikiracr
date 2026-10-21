@@ -3,7 +3,7 @@ const path = require('node:path');
 require('dotenv').config({ path: path.resolve(__dirname, '../.env'), quiet: true });
 const Database = require('better-sqlite3');
 const { createArticlePolicy } = require('../src/lib/articlePolicy');
-const { resolveTitle } = require('../src/lib/articleAccess');
+const { resolveTitle } = require('../src/lib/wikiTitle');
 
 async function main() {
   const [command, value, ...rest] = process.argv.slice(2);

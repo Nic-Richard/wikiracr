@@ -50,7 +50,7 @@ export default function Terms() {
             <section className={styles.section}>
               <h2>3. Accounts and guest play</h2>
               <p>
-                Some parts of WikiRacr can be played as a guest. Other features require a signed-in account, including saved history, Daily Challenge progress, ranked play, leaderboards, and Custom Lobby access.
+                Some parts of WikiRacr can be played as a guest. Other features require a signed-in account, including saved history, Daily Challenge progress, ranked play, leaderboards, chat, and Custom Lobby access.
               </p>
               <p>
                 You must be at least 13 years old to create an account. You are responsible for keeping your account secure and for activity that happens through your account. Login and account management are handled through Clerk.
@@ -86,7 +86,7 @@ export default function Terms() {
             <section className={styles.section}>
               <h2>6. Multiplayer chat and player behavior</h2>
               <p>Before sending chat messages, you must explicitly accept the chat rules and these terms. The chat panel reminds you to protect your personal information and explains how to block and report abuse.</p>
-              <p>Use Block beside a chat message to hide that player's messages on this device. Manage blocked players from the chat panel. Guest blocks last until the guest reconnects; blocks do not prevent matchmaking. Use Report beside a message to send the message, player details and your selected reason to WikiRacr for review.</p>
+              <p>Chat is available to signed-in players. Use Block beside a chat message to hide that player's messages on this device. Manage blocked players from the chat panel; blocks do not prevent matchmaking. Use Report beside a message to send the message, player details and your selected reason to WikiRacr for review.</p>
               <p>
                 Multiplayer chat is for game-related conversation and light banter, not harassment. Do not post threats, hateful content, sexual content, spam, private information, impersonation, or anything illegal.
               </p>

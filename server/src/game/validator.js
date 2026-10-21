@@ -57,9 +57,6 @@ async function fetchRemainingPages(title, key, startContinue, linksSoFar) {
 }
 
 async function isValidLink(fromTitle, toTitle) {
-  try {
-    if (!(await require('../lib/articleAccess').articleAccess(toTitle)).allowed) return false;
-  } catch { return null; }
   const key    = normalise(fromTitle);
   const target = normalise(toTitle);
 

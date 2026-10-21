@@ -8,8 +8,8 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 
-test('article reports preserve context without hiding content; global blocks prevent loading', async () => {
-  const reports = [], wiki = [];
+test('article reports preserve context without hiding content', async () => {
+  const reports = [];
   const cache = mkdtempSync(join(tmpdir(), 'wikiracr-article-test-'));
   const server = await createServer({ configFile: false, cacheDir: cache, root: fileURLToPath(new URL('..', import.meta.url)), server: { host: '127.0.0.1', port: 0 }, plugins: [{
     name: 'article-test', enforce: 'pre',
@@ -17,11 +17,6 @@ test('article reports preserve context without hiding content; global blocks pre
       if (id.endsWith('/src/components/ReportButton.jsx')) return source.replace("import { useAuth } from '../lib/auth';", 'const useAuth = () => ({isSignedIn: false});');
     },
     configureServer(server) {
-      server.middlewares.use('/api/articles/check', (req, res) => {
-        const title = new URL(req.url, 'http://localhost').searchParams.get('title');
-        res.setHeader('Content-Type', 'application/json');
-        res.end(JSON.stringify({ title, allowed: title !== 'Blocked' }));
-      });
       server.middlewares.use('/api/report', (req, res) => {
         let body = ''; req.on('data', chunk => { body += chunk; });
         req.on('end', () => { reports.push(JSON.parse(body)); res.setHeader('Content-Type', 'application/json'); res.end('{"ok":true}'); });
@@ -48,7 +43,6 @@ const root=createRoot(document.getElementById('root'));window.draw=(title='Alpha
       const url = new URL(request.url());
       if (url.hostname === 'en.wikipedia.org') {
         if (url.pathname.includes('/page/html/')) {
-          wiki.push(url.pathname);
           return request.respond({ status: 200, contentType: 'text/html', headers: { 'Access-Control-Allow-Origin': '*' }, body: '<h1>Fixture article</h1><p>Article content</p>' });
         }
         return request.respond({ status: 200, contentType: 'text/css', body: '' });
@@ -83,15 +77,6 @@ const root=createRoot(document.getElementById('root'));window.draw=(title='Alpha
     assert.ok(await page.$('iframe'));
     assert.equal(await page.evaluate(() => [...document.querySelectorAll('button')].some(button => button.textContent === 'Hide article')), false);
     assert.equal(await page.evaluate(() => localStorage.getItem('wikiracr-hidden-articles')), null);
-    await page.reload();
-    await page.waitForSelector('iframe');
-    await page.evaluate(() => window.draw('Blocked'));
-    await page.waitForFunction(() => document.body.textContent.includes('This article is unavailable'));
-    assert.equal(wiki.some(path => path.endsWith('/Blocked')), false);
-    assert.equal(await page.$('iframe'), null);
-    await page.click('button[aria-label="Report a problem"]');
-    await click('Article');
-    assert.ok(await page.evaluate(() => document.body.textContent.includes('Article: Blocked')));
     await page.reload();
     await page.evaluate(() => window.draw(''));
     await page.click('button[aria-label="Report a problem"]');

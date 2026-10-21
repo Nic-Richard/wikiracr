@@ -1,13 +1,36 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
-import { useUser } from '../lib/auth';
+import { useUser, SignInButton } from '../lib/auth';
 import styles from './ChatPanel.module.css';
 
 const CHAT_RULES_VERSION = '2026-10-20';
 
 export default function ChatPanel({ messages, mySocketId, onSend, onReport }) {
   const { user } = useUser();
-  const storageKey = `wikiracrBlockedChat:${user?.id || 'guest'}`;
-  return <Chat key={storageKey} viewerId={user?.id} {...{ messages, mySocketId, onSend, onReport, storageKey }} />;
+  if (!user) return <SignedOutChat />;
+  const storageKey = `wikiracrBlockedChat:${user.id}`;
+  return <Chat key={storageKey} viewerId={user.id} {...{ messages, mySocketId, onSend, onReport, storageKey }} />;
+}
+
+function SignedOutChat() {
+  const [open, setOpen] = useState(false);
+  if (!open) return <button className={styles.launcher} onClick={() => setOpen(true)}>Chat</button>;
+  return (
+    <div className={styles.panel}>
+      <div className={styles.header}>
+        <span className={styles.title}>Chat</span>
+        <button className={styles.closeBtn} onClick={() => setOpen(false)} aria-label="Close chat">&times;</button>
+      </div>
+      <div className={styles.list}>
+        <div className={styles.reportForm}>
+          <strong>Sign in to chat</strong>
+          <p>Chat is for signed-in players. You can keep racing as a guest.</p>
+          <SignInButton mode="modal" forceRedirectUrl={window.location.pathname}>
+            <button className={styles.action} type="button">Sign in</button>
+          </SignInButton>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function Chat({ messages, mySocketId, onSend, onReport, storageKey, viewerId }) {
@@ -27,7 +50,7 @@ function Chat({ messages, mySocketId, onSend, onReport, storageKey, viewerId }) 
     catch { return false; }
   });
   const [agree, setAgree] = useState(false);
-  const identity = message => message.userId ? `account:${message.userId}` : `guest:${message.socketId}`;
+  const identity = message => `account:${message.userId}`;
   const isMine = message => message.socketId === mySocketId || (viewerId && message.userId === viewerId);
   const visible = useMemo(() => messages.filter(message => !blocked[identity(message)]), [messages, blocked]);
   const [open, setOpen]     = useState(false);
@@ -77,8 +100,9 @@ function Chat({ messages, mySocketId, onSend, onReport, storageKey, viewerId }) 
     e.preventDefault();
     const text = draft.trim();
     if (!text || !rulesAccepted) return;
-    onSend(text, CHAT_RULES_VERSION);
     setDraft('');
+    setNotice('');
+    onSend(text, CHAT_RULES_VERSION).catch(error => { setDraft(text); setNotice(error.message); });
   }
 
   if (!open) {
@@ -112,7 +136,7 @@ function Chat({ messages, mySocketId, onSend, onReport, storageKey, viewerId }) 
         </form> : <>
         {notice && <p className={styles.notice} role="status">{notice}</p>}
         {managing ? <>
-          <p className={styles.notice}>Blocked players' messages are hidden on this device. Guest blocks last until they reconnect.</p>
+          <p className={styles.notice}>Blocked players' messages are hidden on this device.</p>
           {Object.entries(blocked).map(([id, name]) => <div className={styles.blockedRow} key={id}>
             <span>{name}</span>
             <button className={styles.action} onClick={() => { const next = { ...blocked }; delete next[id]; updateBlocked(next); }}>Unblock</button>

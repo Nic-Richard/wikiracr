@@ -8,7 +8,7 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 
-test('chat requires explicit rules acceptance, persists blocks and reports with retry', async () => {
+test('chat requires sign-in and rules acceptance, persists blocks and reports with retry', async () => {
   const cache = mkdtempSync(join(tmpdir(), 'wikiracr-chat-test-'));
   const server = await createServer({
     configFile: false, cacheDir: cache, root: fileURLToPath(new URL('..', import.meta.url)),
@@ -16,7 +16,7 @@ test('chat requires explicit rules acceptance, persists blocks and reports with 
     plugins: [{
       name: 'chat-test', enforce: 'pre',
       transform(source, id) {
-        if (id.endsWith('/src/components/ChatPanel.jsx')) return source.replace("import { useUser } from '../lib/auth';", "const useUser = () => ({user: {id: 'viewer'}});");
+        if (id.endsWith('/src/components/ChatPanel.jsx')) return source.replace("import { useUser, SignInButton } from '../lib/auth';", "const useUser = () => ({user: window.signedOut ? null : {id: 'viewer'}}); const SignInButton = ({children}) => children;");
       },
       configureServer(server) {
         server.middlewares.use('/chat-test', async (_req, res) => {
@@ -29,7 +29,7 @@ import '/src/index.css';
 const root = createRoot(document.getElementById('root'));
 window.messages = [{id:'message1',userId:'alice',socketId:'old',username:'Alice',text:'Hello there'}];
 window.reports = []; window.sent = []; window.failReport = true;
-window.draw = () => root.render(React.createElement(ChatPanel,{messages:[...window.messages],mySocketId:'me',onSend:(text,termsVersion)=>window.sent.push({text,termsVersion}),onReport:async(id,reason)=>{if(window.failReport)throw new Error('Try again');window.reports.push({id,reason});}}));
+window.draw = () => root.render(React.createElement(ChatPanel,{messages:[...window.messages],mySocketId:'me',onSend:async(text,termsVersion)=>{if(text==='Banned')throw new Error('Chat is turned off for your account.');window.sent.push({text,termsVersion});},onReport:async(id,reason)=>{if(window.failReport)throw new Error('Try again');window.reports.push({id,reason});}}));
 window.draw();</script>`));
         });
       },
@@ -65,6 +65,10 @@ window.draw();</script>`));
     await page.type('input[placeholder="Message..."]', 'Hello');
     await click('Send');
     assert.deepEqual(await page.evaluate(() => window.sent), [{text:'Hello',termsVersion:'2026-10-20'}]);
+    await page.type('input[placeholder="Message..."]', 'Banned');
+    await click('Send');
+    await page.waitForFunction(() => document.body.textContent.includes('Chat is turned off'));
+    assert.equal(await page.$eval('input[placeholder="Message..."]', input => input.value), 'Banned');
     await click('Block');
     await page.waitForFunction(() => !document.body.textContent.includes('Hello there'));
     await page.reload();
@@ -85,6 +89,11 @@ window.draw();</script>`));
     await page.waitForFunction(() => document.body.textContent.includes('Report sent for review'));
     assert.deepEqual(await page.evaluate(() => window.reports), [{ id: 'message1', reason: 'Harassment' }]);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+    await page.evaluate(() => { window.signedOut = true; window.draw(); });
+    await click('Chat');
+    await page.waitForFunction(() => document.body.textContent.includes('Sign in to chat'));
+    assert.equal(await page.evaluate(() => document.body.textContent.includes('Still blocked')), false);
+    assert.equal(await page.$('input[placeholder="Message..."]'), null);
     assert.deepEqual(errors, []);
   } finally { await browser?.close(); await server.close(); assert.ok(cache.startsWith(join(tmpdir(), 'wikiracr-chat-test-'))); rmSync(cache, { recursive: true, force: true }); }
 });

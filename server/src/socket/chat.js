@@ -2,29 +2,39 @@ const { randomUUID } = require('node:crypto');
 
 const REASONS = new Set(['Harassment', 'Hate or threats', 'Sexual content', 'Spam', 'Other']);
 
-function setupChat(io, socket, { getRoom, saveReport, sendAlert }) {
+function setupChat(io, socket, { getRoom, saveReport, sendAlert, chatBanned = () => false }) {
   let lastMessageAt = 0;
   let reports = 0;
   let reportWindow = Date.now();
   const reported = new Set();
 
-  socket.on('chat-message', (payload = {}) => {
+  socket.on('chat-message', (payload = {}, reply) => {
+    const respond = typeof reply === 'function' ? reply : () => {};
     const room = getRoom(socket.id);
-    if (!room || typeof payload?.text !== 'string' || payload.termsVersion !== '2026-10-20') return;
+    if (!room || typeof payload?.text !== 'string' || payload.termsVersion !== '2026-10-20') return respond({ ok: false, error: 'Message not sent.' });
+    if (!socket.user.userId) return respond({ ok: false, error: 'Sign in to use chat.' });
+    if (chatBanned(socket.user.userId)) return respond({ ok: false, error: 'Chat is turned off for your account.' });
     const text = payload.text.trim().slice(0, 200);
     const at = Date.now();
-    if (!text || at - lastMessageAt < 750) return;
+    if (!text) return respond({ ok: false, error: 'Message not sent.' });
+    if (at - lastMessageAt < 750) return respond({ ok: false, error: 'Slow down a little.' });
     lastMessageAt = at;
     const message = {
-      id: randomUUID(), socketId: socket.id, userId: socket.user.userId || null,
+      id: randomUUID(), socketId: socket.id, userId: socket.user.userId,
       username: socket.user.username, text, at,
     };
     room.recentChat = [...(room.recentChat || []), message].slice(-100);
-    io.to(room.code).emit('chat-message', message);
+    // Guests can race in the room but never receive chat.
+    for (const id of io.sockets.adapter.rooms.get(room.code) || []) {
+      const member = io.sockets.sockets.get(id);
+      if (member?.user?.userId) member.emit('chat-message', message);
+    }
+    respond({ ok: true });
   });
 
   socket.on('report-chat', (payload = {}, reply) => {
     if (typeof reply !== 'function') return;
+    if (!socket.user.userId) return reply({ ok: false, error: 'Sign in to report messages.' });
     const room = getRoom(socket.id);
     const message = room?.recentChat?.find(item => item.id === payload?.messageId);
     if (!message || message.socketId === socket.id || (message.userId && message.userId === socket.user.userId)) return reply({ ok: false, error: 'This message is no longer available to report.' });

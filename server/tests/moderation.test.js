@@ -55,11 +55,13 @@ test('callbacks require fresh per-app signatures and a Discord moderator identit
 test('article unblocking and report reopening preserve receipts and reject decisions from earlier cycles', t => {
   const { execute, data, policy } = fixture(t);
   const initial = execute(data);
-  const block = { ...data, action: 'blacklist', expectedVersion: initial.version };
+  const block = { ...data, action: 'blacklist', expectedVersion: initial.version, canonicalTitle: 'Canonical article' };
   const blocked = execute(block);
+  assert.equal(policy.blocked('Canonical article'), true, 'the redirect target is blocked with the reported title');
   const unblock = { ...data, requestId: crypto.randomUUID(), action: 'unblock', expectedVersion: blocked.version };
   const unblocked = execute(unblock);
   assert.equal(policy.blocked('Example article'), false);
+  assert.equal(policy.blocked('Canonical article'), false);
   assert.deepEqual(execute(block), blocked);
   assert.equal(policy.blocked('Example article'), false, 'retrying an old block only returns its receipt');
   assert.deepEqual(execute(unblock), unblocked);
@@ -70,4 +72,19 @@ test('article unblocking and report reopening preserve receipts and reject decis
   const again = execute({ ...block, requestId: crypto.randomUUID(), expectedVersion: reopened.version });
   assert.equal(again.status, 'blocked');
   assert.equal(policy.blocked('Example article'), true);
+});
+
+test('player reports can ban and unban chat without closing the account', t => {
+  const { db, execute, data } = fixture(t);
+  db.prepare('INSERT INTO reports VALUES (?, ?, ?, ?, ?, ?)').run(2, 'player', 'Harassment', JSON.stringify({ reportedUserId: 'user_bad', username: 'Bad' }), 'account-123456', 124);
+  const player = { ...data, target: { kind: 'report', id: '2' } };
+  const initial = execute(player);
+  assert.deepEqual(initial.actions, ['resolve', 'dismiss', 'ban']);
+  const banned = execute({ ...player, action: 'ban', expectedVersion: initial.version });
+  assert.equal(banned.status, 'actioned');
+  assert.deepEqual(banned.actions, ['reopen', 'unban']);
+  assert.ok(db.prepare('SELECT 1 FROM chat_bans WHERE user_id = ?').get('user_bad'));
+  const unbanned = execute({ ...player, requestId: crypto.randomUUID(), action: 'unban', expectedVersion: banned.version });
+  assert.deepEqual(unbanned.actions, ['reopen', 'ban']);
+  assert.equal(db.prepare('SELECT 1 FROM chat_bans WHERE user_id = ?').get('user_bad'), undefined);
 });

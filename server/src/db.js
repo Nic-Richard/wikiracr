@@ -535,13 +535,21 @@ function saveReport(data) {
 
 module.exports = {
   getArticlePolicy: () => articlePolicy,
-  moderateReport: data => reportModeration(data),
+  isChatBanned: userId => !!appDb.prepare('SELECT 1 FROM chat_bans WHERE user_id = ?').get(userId),
+  moderateReport: async data => {
+    if (data.action === 'blacklist' && /^\d{1,12}$/.test(data.target?.id || '')) {
+      let title;
+      try { title = JSON.parse(appDb.prepare('SELECT context FROM reports WHERE id = ?').get(Number(data.target.id))?.context || '{}').articleTitle; } catch {}
+      data.canonicalTitle = await require('./lib/wikiTitle').resolveTitle(title).catch(() => null);
+    }
+    return reportModeration(data);
+  },
   getPlayStore: () => playStore,
   getDeletionStore: () => deletionStore,
   deleteAccountData: userId => appDb.transaction(() => {
     playStore.erase(userId);
     appDb.prepare("DELETE FROM reports WHERE json_extract(context, '$.reportedUserId') = ?").run(userId);
-    for (const table of ['game_history', 'daily_progress', 'daily_clock', 'leaderboard_daily', 'user_elo', 'speedrun_scores', 'higherlower_scores', 'reports']) {
+    for (const table of ['game_history', 'daily_progress', 'daily_clock', 'leaderboard_daily', 'user_elo', 'speedrun_scores', 'higherlower_scores', 'reports', 'chat_bans']) {
       appDb.prepare(`DELETE FROM ${table} WHERE user_id = ?`).run(userId);
     }
   })(),

@@ -82,7 +82,14 @@ export default function Game() {
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   function sendChat(text, termsVersion) {
-    socketRef.current?.emit('chat-message', { text, termsVersion });
+    return new Promise((resolve, reject) => {
+      const socket = socketRef.current;
+      if (!socket?.connected) return reject(new Error('Reconnect before chatting.'));
+      socket.timeout(10000).emit('chat-message', { text, termsVersion }, (error, result) => {
+        if (error || !result?.ok) reject(new Error(result?.error || 'Message not sent. Try again.'));
+        else resolve();
+      });
+    });
   }
 
   function reportChat(messageId, reason) {

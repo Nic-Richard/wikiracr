@@ -1,7 +1,7 @@
 const gm = require('../game/GameManager');
 const { isValidLink } = require('../game/validator');
 const { cleanClientHistory } = require('../game/pathCheck');
-const { saveGameHistory, getUserElo, saveReport } = require('../db');
+const { saveGameHistory, getUserElo, saveReport, isChatBanned } = require('../db');
 const { sendAlert } = require('../lib/alerts');
 const { setupChat } = require('./chat');
 const { resolveSocketUser, verifyProUser } = require('../lib/socketAuth');
@@ -31,7 +31,7 @@ function setupSocketHandlers(io) {
   });
 
   io.on('connection', (socket) => {
-    setupChat(io, socket, { getRoom: gm.getRoomBySocket, saveReport, sendAlert });
+    setupChat(io, socket, { getRoom: gm.getRoomBySocket, saveReport, sendAlert, chatBanned: isChatBanned });
 
     socket.on('create-room', (payload = {}, cb) => {
       const { token, ranked, ...options } = payload;
@@ -202,11 +202,10 @@ function setupSocketHandlers(io) {
       }
     });
 
-    socket.on('nav-move', async ({ to }, cb) => {
+    socket.on('nav-move', ({ to }, cb) => {
       try {
         if (typeof to !== 'string' || !to.trim() || to.length > 300) return cb?.({ ok: false });
         if (!gm.getRoomBySocket(socket.id)) return cb?.({ ok: false });
-        if (!(await require('../lib/articleAccess').articleAccess(to)).allowed) return cb?.({ ok: false, error: 'This article is unavailable.' });
         const result = gm.handleNavMove(io, socket.id, to);
         if (!result) return cb?.({ ok: false });
         cb?.({ ok: true, result });

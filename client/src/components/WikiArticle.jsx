@@ -1,6 +1,5 @@
 import Arrow from './Arrow';
 import { appFetch } from '../lib/platform';
-import { checkArticle } from '../lib/articleSafety';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import styles from './WikiArticle.module.css';
 
@@ -163,8 +162,7 @@ function buildDoc(html) {
 }
 
 async function fetchHtml(title) {
-  const allowedTitle = await checkArticle(title);
-  const res = await appFetch(`https://en.wikipedia.org/api/rest_v1/page/html/${encodeURIComponent(allowedTitle)}`);
+  const res = await appFetch(`https://en.wikipedia.org/api/rest_v1/page/html/${encodeURIComponent(title)}`);
   if (!res.ok) throw new Error(`Wikipedia returned ${res.status}`);
   const text = await res.text();
   const doc  = new DOMParser().parseFromString(text, 'text/html');
