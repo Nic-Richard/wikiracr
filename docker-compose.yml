@@ -1,0 +1,27 @@
+# Production-style containers: the API with its SQLite state on a volume, and nginx serving
+# the prerendered site. Copy .env.docker.example to .env.docker before `docker compose up`.
+services:
+  api:
+    build:
+      context: .
+      dockerfile: docker/api.Dockerfile
+    env_file: .env.docker
+    volumes:
+      - state:/app/state
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: docker/web.Dockerfile
+      args:
+        VITE_CLERK_PUBLISHABLE_KEY: ${VITE_CLERK_PUBLISHABLE_KEY:-}
+    ports:
+      - '${WEB_PORT:-8080}:80'
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  state:
