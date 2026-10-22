@@ -18,17 +18,19 @@ import pathlib, sys, tarfile
 with tarfile.open(sys.argv[1], 'r:gz') as archive:
     for item in archive.getmembers():
         path = pathlib.PurePosixPath(item.name)
-        allowed = item.name in ('server', 'server/package.json', 'server/package-lock.json') or item.name.startswith(('server/src/', 'server/scripts/')) or item.name in ('server/src', 'server/scripts')
+        allowed = item.name in ('server', 'server/package.json', 'server/package-lock.json', 'server/src', 'server/scripts', 'client', 'client/dist') or item.name.startswith(('server/src/', 'server/scripts/', 'client/dist/'))
         if not allowed or path.is_absolute() or '..' in path.parts or not (item.isfile() or item.isdir()):
             raise SystemExit('Unexpected deployment archive entry')
     archive.extractall(sys.argv[2], filter='data')
 PY
 find "$stage/server/src" "$stage/server/scripts" -name '*.js' -exec node --check {} \;
+test -f "$stage/client/dist/index.html"
+test -f "$stage/client/dist/404.html"
 (umask 022 && cd "$stage/server" && npm ci --omit=dev)
 node "$stage/server/scripts/smoke-room.js"
 
 install -d -m 700 "$backup"
-tar -czf "$backup/source.tar.gz" -C "$root" server/src server/scripts server/package.json server/package-lock.json
+tar -czf "$backup/source.tar.gz" -C "$root" server/src server/scripts server/package.json server/package-lock.json client/dist
 node - "$root" "$backup/app.db" <<'JS'
 const [root, destination] = process.argv.slice(2);
 const Database = require(root + '/server/node_modules/better-sqlite3');
@@ -46,6 +48,9 @@ rollback() {
     cp "$stage/restore/server/package.json" "$stage/restore/server/package-lock.json" "$root/server/"
     (umask 022 && cd "$root/server" && npm ci --omit=dev)
     (cd "$root" && pm2 reload ecosystem.config.js --only wikiracr)
+    if [[ -d "$stage/restore/client/dist" ]]; then
+      rsync -a --delete --chmod=D755,F644 "$stage/restore/client/dist/" "$root/client/dist/"
+    fi
   fi
   exit "$status"
 }
@@ -65,6 +70,10 @@ done
 curl --fail --silent http://127.0.0.1:3001/health
 curl --fail --silent --dump-header "$stage/headers" -o /dev/null -H 'Origin: https://localhost' http://127.0.0.1:3001/health
 grep -iq '^access-control-allow-origin: https://localhost' "$stage/headers"
+# Old hashed assets stay so open tabs keep loading.
+rsync -a --chmod=D755,F644 "$stage/client/dist/" "$root/client/dist/"
+entry=$(grep -o 'assets/index-[A-Za-z0-9_-]*\.js' "$stage/client/dist/index.html" | head -1)
+curl --fail --silent --max-time 5 --resolve wikiracr.com:443:127.0.0.1 https://wikiracr.com/ | grep -qF "$entry"
 printf '%s\n' "$revision" > "$root/.api-release"
 trap - ERR
 echo "API deployed: $revision"

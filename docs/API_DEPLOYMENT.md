@@ -4,8 +4,10 @@ Run **Deploy API** from GitHub Actions on `main`. It deploys the exact selected
 commit only after that commit's push CI succeeds and Nic approves the **Production**
 environment. It never runs automatically on push.
 
-The workflow sends only `server/src`, `server/scripts` and the server package files.
-It does not deploy the website, mobile artifacts, environment files or databases.
+The workflow builds the website, then sends `server/src`, `server/scripts`, the server
+package files and `client/dist`. It does not deploy mobile artifacts, environment files
+or databases. The website build reads the Production variables `VITE_CLERK_PUBLISHABLE_KEY`
+(must be the live key) and `VITE_SERVER_URL`; both are public values already in the site.
 The server's existing Node 20 runtime and PM2 configuration stay in use.
 
 ## Access
@@ -32,13 +34,15 @@ The helper serializes deployments, rejects unexpected archive paths and symlinks
 checks JavaScript syntax, installs locked production dependencies in a temporary
 directory and runs the room smoke checks before touching the running API.
 
-Immediately before changing code, it saves the previous API source and a consistent
+Immediately before changing code, it saves the previous API source, website files and a consistent
 SQLite `app.db` backup in `/root/deploy-backups/wikiracr-github-previous`. This single
 rollback is replaced on each deployment. The separate pre-deletion rollback remains
 untouched. Temporary staging files are removed when the command exits.
 
-After PM2 reload, both `/health` and the Android origin response must pass. Failure
-restores the previous code and dependencies and reloads it. Databases are never
+After PM2 reload, both `/health` and the Android origin response must pass. The website
+files are then copied over `client/dist`, keeping older hashed assets for open tabs, and
+the homepage must serve the new entry script. Failure restores the previous code,
+dependencies and website files and reloads the API. Databases are never
 automatically restored, so new player data is preserved. Database recovery or schema
 migrations need their own plan and approval. Successful deployments record the SHA
 in `/var/www/wikiracr/.api-release`.
