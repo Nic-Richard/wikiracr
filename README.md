@@ -101,10 +101,16 @@ npm ci --prefix server
 npm ci --prefix client
 npm run smoke:room --prefix server
 npm test --prefix server
+npm run stress --prefix server -- --rooms 20
 npm run build --prefix client
 node --test client/tests/*.test.mjs
 node client/scripts/check-prerender.mjs
 ```
+
+`npm run stress` plays many head-to-head races at once over real Socket.IO connections
+(`--rooms`, `--players`, `--clicks`), with Wikipedia link checks stubbed and a temporary
+player database. It needs the server's native SQLite module, so on Windows run it in a
+Node 20 container. Oct 22: 1,000 rooms (2,000 players) all finished; p95 127 ms, peak 237 MB.
 
 GitHub Actions runs these checks and server syntax checks on pushes to main and pull requests.
 The tests use local fixtures; they do not contact Wikipedia, Clerk, or Stripe. Database tests

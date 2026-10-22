@@ -23,6 +23,7 @@ jobs:
         run: git ls-files -z 'server/*.js' 'server/**/*.js' | xargs -0 -n 1 node --check
       - run: npm run smoke:room --prefix server
       - run: npm test --prefix server
+      - run: npm run stress --prefix server -- --rooms 20
       - run: bash -n scripts/deploy-api-remote.sh
       - run: npm run build --prefix client
         env:
