@@ -24,7 +24,7 @@ with tarfile.open(sys.argv[1], 'r:gz') as archive:
     archive.extractall(sys.argv[2], filter='data')
 PY
 find "$stage/server/src" "$stage/server/scripts" -name '*.js' -exec node --check {} \;
-(cd "$stage/server" && npm ci --omit=dev)
+(umask 022 && cd "$stage/server" && npm ci --omit=dev)
 node "$stage/server/scripts/smoke-room.js"
 
 install -d -m 700 "$backup"
@@ -32,7 +32,7 @@ tar -czf "$backup/source.tar.gz" -C "$root" server/src server/scripts server/pac
 node - "$root" "$backup/app.db" <<'JS'
 const [root, destination] = process.argv.slice(2);
 const Database = require(root + '/server/node_modules/better-sqlite3');
-const db = new Database(root + '/app.db', { readonly: true, fileMustExist: true });
+const db = new Database(root + '/data/app.db', { readonly: true, fileMustExist: true });
 db.backup(destination).then(() => db.close()).catch(error => { db.close(); console.error(error.message); process.exitCode = 1; });
 JS
 changed=0
@@ -41,10 +41,10 @@ rollback() {
   trap - ERR
   if [[ $changed == 1 ]]; then
     echo 'Deployment failed; restoring the previous API code. Databases remain untouched.'
-    rsync -a --delete "$stage/restore/server/src/" "$root/server/src/"
-    rsync -a --delete "$stage/restore/server/scripts/" "$root/server/scripts/"
+    rsync -a --delete --chmod=go=rX "$stage/restore/server/src/" "$root/server/src/"
+    rsync -a --delete --chmod=go=rX "$stage/restore/server/scripts/" "$root/server/scripts/"
     cp "$stage/restore/server/package.json" "$stage/restore/server/package-lock.json" "$root/server/"
-    (cd "$root/server" && npm ci --omit=dev)
+    (umask 022 && cd "$root/server" && npm ci --omit=dev)
     (cd "$root" && pm2 reload ecosystem.config.js --only wikiracr)
   fi
   exit "$status"
@@ -53,10 +53,10 @@ install -d -m 700 "$stage/restore"
 tar -xzf "$backup/source.tar.gz" -C "$stage/restore"
 trap rollback ERR
 changed=1
-rsync -a --delete "$stage/server/src/" "$root/server/src/"
-rsync -a --delete "$stage/server/scripts/" "$root/server/scripts/"
+rsync -a --delete --chmod=go=rX "$stage/server/src/" "$root/server/src/"
+rsync -a --delete --chmod=go=rX "$stage/server/scripts/" "$root/server/scripts/"
 cp "$stage/server/package.json" "$stage/server/package-lock.json" "$root/server/"
-rsync -a --delete "$stage/server/node_modules/" "$root/server/node_modules/"
+rsync -a --delete --chmod=go=rX "$stage/server/node_modules/" "$root/server/node_modules/"
 (cd "$root" && pm2 reload ecosystem.config.js --only wikiracr)
 for attempt in $(seq 1 30); do
   if curl --fail --silent http://127.0.0.1:3001/health >/dev/null; then break; fi

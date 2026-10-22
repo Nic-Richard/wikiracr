@@ -3,6 +3,8 @@ module.exports = {
         name:   "wikiracr",
         script: "server/src/index.js",
         cwd:    "/var/www/wikiracr",
+        uid:    "wikiracr",
+        gid:    "wikiracr",
         watch:  false,
         env: {
             NODE_ENV: "production",

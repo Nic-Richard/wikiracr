@@ -45,6 +45,7 @@ fi
 ssh "$SERVER" "cd '$REMOTE/server' && if [[ -f package-lock.json ]]; then npm ci --omit=dev; else npm install --omit=dev; fi"
 ssh "$SERVER" "cd '$REMOTE/client' && npm ci && npm run build"
 ssh "$SERVER" "nginx -t && systemctl reload nginx"
+ssh "$SERVER" "chown wikiracr:wikiracr '$REMOTE/server/.env' && chown -R wikiracr:wikiracr '$REMOTE/data'"
 ssh "$SERVER" "cd '$REMOTE' && pm2 startOrRestart ecosystem.config.js"
 
 echo "WikiRacr deployed."

@@ -46,5 +46,5 @@ if [[ "$LOCAL_SIZE" != "$REMOTE_SIZE" ]]; then
   exit 1
 fi
 
-ssh "$SERVER" "pm2 start wikiracr"
+ssh "$SERVER" "chown wikiracr:wikiracr '$REMOTE_DB' && pm2 start wikiracr"
 echo "pairs.db updated."

@@ -19,7 +19,7 @@ resource is `/privacy#delete-account`, with an Account link and support email.
 
 ## Deployment
 
-1. Back up production `/var/www/wikiracr/app.db` with SQLite's backup API, plus the current code
+1. Back up production `/var/www/wikiracr/data/app.db` with SQLite's backup API, plus the current code
    and configuration. Preserve the live `pairs.db`; do not upload an older local
    dataset. Do not compare `.env` hashes.
 2. Deploy the alerts relay with `/erase` first. Verify View Channel and Read Message

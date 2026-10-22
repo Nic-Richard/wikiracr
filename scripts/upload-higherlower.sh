@@ -50,5 +50,5 @@ if [[ "$LOCAL_SIZE" != "$REMOTE_SIZE" ]]; then
   exit 1
 fi
 
-ssh "$SERVER" "pm2 restart wikiracr"
+ssh "$SERVER" "chown wikiracr:wikiracr '$REMOTE_JSON' && pm2 restart wikiracr"
 echo "higherlower_articles.json updated."
