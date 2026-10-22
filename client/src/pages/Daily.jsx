@@ -7,6 +7,9 @@ import WikiArticle from '../components/WikiArticle';
 import NetworkBackground from '../components/NetworkBackground';
 import HintButton from '../components/HintButton';
 import ReportButton from '../components/ReportButton';
+import SettingsModal from '../components/SettingsModal';
+import RaceBar from '../components/game/RaceBar';
+import useCompactLayout from '../lib/useCompactLayout';
 import ShortestPath from '../components/game/ShortestPath';
 import { useMotion } from '../lib/MotionContext';
 import { normalizeTitle as nt } from '../lib/format';
@@ -89,6 +92,10 @@ export default function Daily() {
   const { getToken }        = useAuth();
   const { enabled: motion } = useMotion();
 
+  const compact = useCompactLayout();
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [findRequest, setFindRequest]   = useState(0);
+  const crumbRef = useRef(null);
   const [phase, setPhase]         = useState('loading');
   const [loadError, setLoadError] = useState(null);
   const [date, setDate]           = useState(null);
@@ -407,6 +414,10 @@ export default function Daily() {
     );
   }
 
+  useEffect(() => {
+    if (crumbRef.current) crumbRef.current.scrollLeft = crumbRef.current.scrollWidth;
+  }, [histIdx, navHist.length, phase]);
+
   if (phase === 'loading') {
     return <div className={styles.root}><div className={styles.spinner} /></div>;
   }
@@ -456,41 +467,57 @@ export default function Daily() {
 
   if (phase === 'playing' && pair) {
     const breadcrumb = navHist.slice(Math.max(0, histIdx - 3), histIdx + 1);
+    const reportContext = {
+      page: 'daily',
+      date,
+      pairId: pair.id,
+      startTitle: pair.startTitle,
+      endTitle: pair.endTitle,
+      currentArticle,
+    };
     return (
       <div className={styles.gameroot} data-native-race>
-        <div className={styles.hud} data-native-hud>
-          <div className={styles.hudLeft}>
-            <button className={styles.navBtn} onClick={goBack} aria-label="Previous article"    disabled={histIdx <= 0}><Arrow left /></button>
-            <button className={styles.navBtn} onClick={goForward} aria-label="Next article" disabled={histIdx >= navHist.length - 1}><Arrow /></button>
-            <span className={styles.hudArticle}>{nt(currentArticle)}</span>
+        {compact ? (
+          <RaceBar
+            currentArticle={currentArticle}
+            goalTitle={pair.endTitle}
+            canGoBack={histIdx > 0}
+            canGoForward={histIdx < navHist.length - 1}
+            goBack={goBack}
+            goForward={goForward}
+            tags={[{ label: 'DAILY', gold: true }]}
+            clicks={clicks}
+            onFind={() => setFindRequest(n => n + 1)}
+            onSettings={() => setSettingsOpen(true)}
+          />
+        ) : (
+          <div className={styles.hud} data-native-hud>
+            <div className={styles.hudLeft}>
+              <button className={styles.navBtn} onClick={goBack} aria-label="Previous article"    disabled={histIdx <= 0}><Arrow left /></button>
+              <button className={styles.navBtn} onClick={goForward} aria-label="Next article" disabled={histIdx >= navHist.length - 1}><Arrow /></button>
+              <span className={styles.hudArticle}>{nt(currentArticle)}</span>
+            </div>
+            <div className={styles.hudCenter}>
+              <span className={styles.hudTag}>DAILY</span>
+              <span className={styles.hudStartChip}>{nt(pair.startTitle)}</span>
+              <span className={styles.hudArrow}><Arrow /></span>
+              <span className={styles.hudGoalChip}>{nt(pair.endTitle)}</span>
+              <span className={styles.hudOptimal}>{pair.pathLength} optimal</span>
+              <HintButton title={pair.endTitle} />
+              <ReportButton context={reportContext} />
+            </div>
+            <div className={styles.hudRight}>
+              <span className={styles.hudClicks}>{clicks} click{clicks !== 1 ? 's' : ''}</span>
+            </div>
           </div>
-          <div className={styles.hudCenter}>
-            <span className={styles.hudTag}>DAILY</span>
-            <span className={styles.hudStartChip}>{nt(pair.startTitle)}</span>
-            <span className={styles.hudArrow}><Arrow /></span>
-            <span className={styles.hudGoalChip}>{nt(pair.endTitle)}</span>
-            <span className={styles.hudOptimal}>{pair.pathLength} optimal</span>
-            <HintButton title={pair.endTitle} />
-            <ReportButton context={{
-              page: 'daily',
-              date,
-              pairId: pair.id,
-              startTitle: pair.startTitle,
-              endTitle: pair.endTitle,
-              currentArticle,
-            }} />
-          </div>
-          <div className={styles.hudRight}>
-            <span className={styles.hudClicks}>{clicks} click{clicks !== 1 ? 's' : ''}</span>
-          </div>
-        </div>
+        )}
 
         <div className={styles.articleArea}>
-          <WikiArticle title={currentArticle} goalTitle={pair.endTitle} onLinkClick={handleLinkClick} />
+          <WikiArticle title={currentArticle} goalTitle={pair.endTitle} onLinkClick={handleLinkClick} findRequest={findRequest} />
         </div>
 
         <div className={styles.bottomBar}>
-          <div className={styles.breadcrumb}>
+          <div className={styles.breadcrumb} ref={crumbRef}>
             {breadcrumb.map((a, i) => (
               <span key={i} className={styles.breadcrumbItem}>
                 {i > 0 && <span className={styles.breadcrumbArrow}>&rsaquo;</span>}
@@ -500,6 +527,10 @@ export default function Daily() {
           </div>
           <Link to="/menu" className={styles.menuBtn}>Menu</Link>
         </div>
+
+        {settingsOpen && (
+          <SettingsModal showTextSize report={reportContext} onClose={() => setSettingsOpen(false)} />
+        )}
       </div>
     );
   }

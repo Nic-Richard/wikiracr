@@ -120,25 +120,14 @@
   .chip { min-width: 0; max-width: 42vw; padding: 9px 12px; overflow: hidden; text-overflow: ellipsis; }
   .chipArrow { padding: 0 2px; }
   .gameroot { height: 100dvh; }
-  .hud { height: auto; min-height: 43px; padding: 5px 7px; gap: 6px; }
-  .hudLeft { gap: 4px; }
-  .hudCenter { display: none; }
-  .hudRight { gap: 5px; overflow-x: auto; scrollbar-width: none; }
-  .hudRight::-webkit-scrollbar { display: none; }
-  .navBtn { width: 28px; height: 28px; font-size: 13px; }
-  .hudArticle { font-size: 12px; }
-  .hudTag { padding: 3px 5px; font-size: 8px; }
-  .hudStartChip, .hudGoalChip, .hudArrow, .hudOptimal { display: none; }
-  .hudTimer { font-size: 16px; }
-  .hudClicks { font-size: 11px; }
-  .hudDivider { height: 13px; }
   .articleArea { overflow: hidden; }
-  .bottomBar { height: auto; min-height: 48px; padding: 6px 8px; gap: 7px; }
+  .bottomBar { height: auto; min-height: 52px; padding: 6px 8px 6px 12px; gap: 8px; border-top-width: 1px; }
   .breadcrumb { overflow-x: auto; overflow-y: hidden; scrollbar-width: none; padding: 2px 0; }
   .breadcrumb::-webkit-scrollbar { display: none; }
   .breadcrumbItem { flex-shrink: 0; }
-  .breadcrumbChip { max-width: 128px; overflow: hidden; text-overflow: ellipsis; flex-shrink: 0; }
-  .menuBtn { padding: 8px 10px; font-size: 11px; }
+  .breadcrumbChip { max-width: 150px; padding: 0; background: none; font-size: 13px; overflow: hidden; text-overflow: ellipsis; flex-shrink: 0; }
+  .breadcrumbChipCurrent { background: none; color: var(--text); }
+  .menuBtn { min-height: 40px; display: inline-flex; align-items: center; padding: 8px 12px; font-size: 13px; }
   .resWrap { padding: 28px 14px; gap: 14px; }
   .clickCompare { flex-wrap: wrap; justify-content: center; text-align: center; }
   .clickGrid { font-size: 20px; letter-spacing: 3px; }

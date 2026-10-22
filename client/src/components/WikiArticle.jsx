@@ -35,6 +35,27 @@ function readStoredZoom() {
   }
 }
 
+const zoomListeners = new Set();
+let sharedZoom = null;
+
+// Article text size, shared by every article view and the settings panel.
+export function useArticleZoom() {
+  const [zoom, setZoom] = useState(() => sharedZoom ?? (sharedZoom = readStoredZoom()));
+  useEffect(() => {
+    zoomListeners.add(setZoom);
+    return () => zoomListeners.delete(setZoom);
+  }, []);
+  const update = useCallback(next => {
+    const current = sharedZoom ?? readStoredZoom();
+    sharedZoom = clampZoom(typeof next === 'function' ? next(current) : next);
+    try { localStorage.setItem(ZOOM_STORAGE_KEY, String(sharedZoom)); } catch {}
+    zoomListeners.forEach(listener => listener(sharedZoom));
+  }, []);
+  return [zoom, update];
+}
+
+export const ZOOM_LIMITS = { step: ZOOM_STEP, max: ZOOM_MAX, min: getZoomMin };
+
 function buildDoc(html) {
   return `<!DOCTYPE html>
 <html>
@@ -62,6 +83,14 @@ function buildDoc(html) {
     a:hover { text-decoration: underline; }
     mark.wikiracr-find-mark { background: #fff3a3; color: inherit; }
     mark.wikiracr-find-active { background: #ffb84d; }
+    @media (max-width: 700px) {
+      html, body { padding: 6px 16px 64px; font-family: -apple-system, Roboto, 'Segoe UI', sans-serif; font-size: 16px; line-height: 1.6; }
+      h1, h2 { font-family: 'Linux Libertine', Georgia, serif; }
+      .infobox, table.infobox, .sidebar { float: none !important; width: 100% !important; max-width: 100% !important; margin: 12px 0 16px !important; font-size: 0.9em; }
+      .hatnote { font-size: 0.9em; color: #54595d; }
+      audio, .mw-tmh-player { display: none !important; }
+      img { max-width: 100%; height: auto; }
+    }
   </style>
 </head>
 <body>
@@ -141,9 +170,10 @@ function buildDoc(html) {
       function applyArticleZoom(value) {
         var zoom = Math.min(1.4, Math.max(0.6, Number(value) || 1));
         var content = document.querySelector('.mw-parser-output');
-        document.body.style.fontSize = (14 * zoom) + 'px';
-        document.body.style.paddingLeft = Math.max(8, Math.round(20 / zoom)) + 'px';
-        document.body.style.paddingRight = Math.max(8, Math.round(20 / zoom)) + 'px';
+        var phone = window.innerWidth <= 700;
+        document.body.style.fontSize = ((phone ? 16 : 14) * zoom) + 'px';
+        document.body.style.paddingLeft = Math.max(8, Math.round((phone ? 16 : 20) / zoom)) + 'px';
+        document.body.style.paddingRight = Math.max(8, Math.round((phone ? 16 : 20) / zoom)) + 'px';
         if (content) content.style.maxWidth = Math.round(960 / zoom) + 'px';
       }
 
@@ -175,14 +205,14 @@ async function fetchHtml(title) {
   return doc.body.innerHTML;
 }
 
-export default function WikiArticle({ title, goalTitle, onLinkClick }) {
+export default function WikiArticle({ title, goalTitle, onLinkClick, findRequest = 0 }) {
   const [blobUrl, setBlobUrl] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error,   setError]   = useState(null);
   const [findOpen, setFindOpen]   = useState(false);
   const [query, setQuery]         = useState('');
   const [matches, setMatches]     = useState({ count: 0, index: 0 });
-  const [articleZoom, setArticleZoom] = useState(readStoredZoom);
+  const [articleZoom, setArticleZoom] = useArticleZoom();
   const iframeRef  = useRef(null);
   const findInputRef = useRef(null);
   const debounceRef  = useRef(null);
@@ -202,9 +232,12 @@ export default function WikiArticle({ title, goalTitle, onLinkClick }) {
   }, [title]);
 
   useEffect(() => {
-    try { localStorage.setItem(ZOOM_STORAGE_KEY, String(articleZoom)); } catch {}
     applyArticleZoom();
-  }, [articleZoom, applyArticleZoom]);
+  }, [applyArticleZoom]);
+
+  useEffect(() => {
+    if (findRequest) openFind();
+  }, [findRequest]);
 
   useEffect(() => {
     let url = null;
@@ -269,14 +302,14 @@ export default function WikiArticle({ title, goalTitle, onLinkClick }) {
   }
 
   useEffect(() => {
-    const onResize = () => setArticleZoom(value => clampZoom(value));
+    const onResize = () => setArticleZoom(value => value);
     window.addEventListener('resize', onResize);
     window.addEventListener('orientationchange', onResize);
     return () => {
       window.removeEventListener('resize', onResize);
       window.removeEventListener('orientationchange', onResize);
     };
-  }, []);
+  }, [setArticleZoom]);
 
   function resetArticleZoom() {
     setArticleZoom(100);
@@ -309,7 +342,7 @@ export default function WikiArticle({ title, goalTitle, onLinkClick }) {
   }
 
   return (
-    <div className={styles.root}>
+    <div className={`${styles.root} ${findOpen ? styles.finding : ''}`}>
       <div className={styles.banner}>
         <span className={styles.bannerLabel}>Navigate to</span>
         <strong className={styles.bannerGoal}>{displayGoal}</strong>

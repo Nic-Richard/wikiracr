@@ -105,6 +105,9 @@ try {
   await page.waitForSelector('[data-menu-panel="solo"]');
   await page.$$eval('button', buttons => buttons.find(button => button.textContent.startsWith('START ')).click());
   await page.waitForSelector('iframe', { timeout: 16000 });
+  assert.equal(await page.$$eval('button[aria-label="Report a problem"]', buttons => buttons.length), 0, 'Report lives in settings on phones');
+  await page.click('[data-native-hud] button[aria-label="Settings"]');
+  assert.equal(await page.$eval('button[aria-label="Reset article zoom"]', element => element.textContent), '100%', 'First article must start at readable zoom');
   assert.equal(await page.$$eval('button[aria-label="Report a problem"]', buttons => buttons.length), 1);
   assert.equal(await page.evaluate(() => document.body.textContent.includes('Report article')), false);
   await page.click('button[aria-label="Report a problem"]');
@@ -112,6 +115,7 @@ try {
   await page.$$eval('dialog button', buttons => buttons.find(button => button.textContent === 'Article').click());
   assert(await page.$eval('dialog', element => element.textContent.includes('Article: Alpha')), 'Existing report panel must identify the current article');
   await page.click('button[aria-label="Close report"]');
+  await page.click('button[aria-label="Close settings"]');
   const frameElement = await page.$('iframe'), frame = await frameElement.contentFrame();
   await frame.waitForSelector('a');
   assert.equal(await page.evaluate(() => window.__articleScriptRan), undefined, 'Wikipedia cannot execute scripts in the app');
@@ -120,13 +124,13 @@ try {
   const geometry = await page.$eval('iframe', element => ({ height: element.getBoundingClientRect().height, width: element.getBoundingClientRect().width }));
   if (process.env.SMOKE_SCREENSHOT) await page.screenshot({ path: process.env.SMOKE_SCREENSHOT });
   assert(geometry.height > 350 && geometry.width <= 390, `Article should occupy most of the phone: ${JSON.stringify(geometry)}`);
-  assert(await page.$eval('[class*="hudGoalChip"]', element => element.getBoundingClientRect().height <= 55), 'Long titles must not grow the game header');
-  assert(await page.$eval('[class*="hudGoalChip"]', element => element.getBoundingClientRect().width <= 201), 'Goal box must leave room for controls');
-  assert(await page.$eval('[data-native-hud]', element => [...element.querySelectorAll('button, [class*="hudGoalChip"]')].every(child => child.getBoundingClientRect().right <= innerWidth)), 'Game controls must stay inside the viewport');
-  assert.equal(await page.$eval('button[aria-label="Reset article zoom"]', element => element.textContent), '100%', 'First article must start at readable zoom');
+  assert(await page.$eval('[data-native-hud]', element => element.getBoundingClientRect().height <= 125), 'Solo header must stay two rows');
+  assert(await page.$eval('[data-native-hud]', element => element.textContent.includes('GOAL')), 'Goal must be labelled');
+  const fits = () => page.$eval('[data-native-hud]', element => [...element.querySelectorAll('button, [class*="goalTitle"]')].every(child => { const box = child.getBoundingClientRect(); return box.left >= 0 && box.right <= innerWidth; }));
+  assert(await fits(), 'Game controls must stay inside the viewport');
   for (const viewport of [{ width: 320, height: 740 }, { width: 844, height: 390 }]) {
     await page.setViewport({ ...viewport, isMobile: true, hasTouch: true });
-    assert(await page.$eval('[data-native-hud]', element => [...element.querySelectorAll('button, [class*="hudGoalChip"]')].every(child => { const box = child.getBoundingClientRect(); return box.left >= 0 && box.right <= innerWidth; })), 'Game controls must fit small and rotated screens');
+    assert(await fits(), 'Game controls must fit small and rotated screens');
   }
   await page.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
   await page.evaluate(() => window.__nativeEvents['App:backButton']({ canGoBack: true }));

@@ -79,3 +79,9 @@
   transition: transform 0.15s;
 }
 .switchOn .switchKnob { transform: translateX(18px); }
+
+.stepper { display: flex; flex-shrink: 0; border: 1px solid var(--bdr2); border-radius: 4px; overflow: hidden; }
+.stepper button { min-width: 40px; height: 40px; background: var(--sur2); border: 0; color: var(--text); font: 600 15px var(--body); cursor: pointer; }
+.stepper button + button { border-left: 1px solid var(--bdr2); }
+.stepper button:nth-child(2) { min-width: 56px; font-size: 13px; color: var(--muted); }
+.stepper button:disabled { opacity: 0.35; cursor: default; }

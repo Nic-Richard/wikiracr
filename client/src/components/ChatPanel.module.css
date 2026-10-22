@@ -113,9 +113,9 @@
 .reportForm a { color: var(--accent); text-decoration: underline; }
 .reportForm label { line-height: 1.5; }
 
-@media (max-width: 700px) {
-  .launcher { right: 10px; bottom: 56px; padding: 7px 12px; font-size: 11px; }
-  .panel { right: 8px; bottom: 54px; width: min(340px, calc(100vw - 16px)); height: min(320px, 48dvh); }
+@media (max-width: 760px), (pointer: coarse) and (max-width: 940px) {
+  .launcher { right: 10px; bottom: calc(64px + var(--safe-bottom, 0px)); min-height: 36px; padding: 7px 14px; font-size: 12px; }
+  .panel { right: 8px; bottom: calc(62px + var(--safe-bottom, 0px)); width: min(340px, calc(100vw - 16px)); height: min(320px, 48dvh); }
   .header { padding: 9px 12px; }
   .list { padding: 9px 12px; }
   .inputRow { padding: 8px; }
