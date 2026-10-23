@@ -133,7 +133,6 @@
   .clickGrid { font-size: 20px; letter-spacing: 3px; }
   .lbBox { padding: 12px; }
   .lbRow { grid-template-columns: 24px 1fr auto; gap: 8px; }
-  .lbClicks { display: none; }
   .resButtons { width: 100%; flex-direction: column; gap: 10px; }
   .shareRow { justify-content: center; }
 }
