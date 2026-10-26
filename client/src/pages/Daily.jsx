@@ -400,6 +400,17 @@ export default function Daily() {
     setShareOpen(false);
   }
 
+  useEffect(() => {
+    if (crumbRef.current) crumbRef.current.scrollLeft = crumbRef.current.scrollWidth;
+  }, [histIdx, navHist.length, phase]);
+
+  function retryLoad() {
+    setLoadError(null);
+    setPhase('loading');
+    if (isSignedIn) checkStatusThenLoad();
+    else fetchDaily();
+  }
+
   if (loadError) {
     return (
       <div className={styles.root}>
@@ -409,14 +420,11 @@ export default function Daily() {
           </div>
           <p className={styles.gateTitle}>Could not load today's challenge</p>
           <p className={styles.gateDesc}>{loadError}</p>
+          <button className={styles.gateBtn} onClick={retryLoad}>TRY AGAIN</button>
         </div>
       </div>
     );
   }
-
-  useEffect(() => {
-    if (crumbRef.current) crumbRef.current.scrollLeft = crumbRef.current.scrollWidth;
-  }, [histIdx, navHist.length, phase]);
 
   if (phase === 'loading') {
     return <div className={styles.root}><div className={styles.spinner} /></div>;
