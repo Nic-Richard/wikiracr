@@ -108,9 +108,13 @@ node client/scripts/check-prerender.mjs
 ```
 
 `npm run stress` plays many head-to-head races at once over real Socket.IO connections
-(`--rooms`, `--players`, `--clicks`), with Wikipedia link checks stubbed and a temporary
+(`--rooms`, `--players`, `--clicks`, `--ramp` to spread room starts, `--think` for the pause before each
+click, `--workers` to split players across processes), with Wikipedia link checks stubbed and a temporary
 player database. It needs the server's native SQLite module, so on Windows run it in a
-Node 20 container. Oct 22: 1,000 rooms (2,000 players) all finished; p95 127 ms, peak 237 MB.
+Node 20 container. Nov 3, at a human click pace (`--rooms 4500 --ramp 60 --think 4 --workers 8`):
+all 4,500 rooms finished with 3,153 in play at once (about 6,300 players); p95 20 ms, peak 325 MB.
+Past roughly 3,400 rooms in play the single server process can't accept new connections fast
+enough and they time out.
 
 GitHub Actions runs these checks and server syntax checks on pushes to main and pull requests.
 The tests use local fixtures; they do not contact Wikipedia, Clerk, or Stripe. Database tests
