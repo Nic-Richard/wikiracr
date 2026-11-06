@@ -50,7 +50,6 @@ callback `clerk://com.wikiracr.app.callback` is registered in Clerk. Sessions st
 with the SDK; the article iframe cannot read them. Web authentication is unchanged.
 Existing Pro entitlements work. Android uses Google Play for new subscriptions,
 restore and subscription management; it exposes no Stripe checkout or portal.
-See `../docs/PLAY_BILLING.md` for server setup and required purchase checks.
 
 ## Before distributing
 
